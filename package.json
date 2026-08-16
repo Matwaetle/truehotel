@@ -1,0 +1,11 @@
+{
+  "name": "true-review",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node --check api/score.js && node --check app/firebase.js && node --check app/session.js"
+  }
+}
