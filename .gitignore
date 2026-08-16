@@ -1,0 +1,13 @@
+# Firebase 서비스 계정 키 — 절대 커밋 금지
+serviceAccount.json
+*-firebase-adminsdk-*.json
+
+# 환경변수
+.env
+.env.local
+
+# 의존성
+node_modules/
+
+# OS
+.DS_Store
