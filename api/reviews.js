@@ -19,7 +19,16 @@ async function sb(path, opts = {}) {
   return data;
 }
 
-const SELECT = 'id,platform,product,title,content,stars,reliability,created_at,users(id,nickname,bio)';
+const SELECT = 'id,platform,product,title,content,stars,reliability,verified,created_at,users(id,nickname,bio)';
+
+// NFR Should: 도배·금지 키워드 자동 제재
+const BANNED = ['광고문의', '카톡문의', '쿠폰지급', '홍보대행', '팔로우이벤트'];
+function moderate(content) {
+  const hit = BANNED.find(w => content.replace(/\s/g, '').includes(w));
+  if (hit) return `금지 키워드("${hit}")가 포함되어 등록할 수 없습니다`;
+  if (/(.{6,}?)\1{2,}/.test(content.replace(/\s/g, ''))) return '동일 문구 반복(도배)으로 등록할 수 없습니다';
+  return null;
+}
 
 // 봇 의심 문구 기반 간이 채점 (OpenRouter 키 없을 때 폴백)
 function heuristicScore(text) {
@@ -101,11 +110,19 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') { // 리뷰 작성
-      const { nickname, platform, product, title, content, stars } = req.body || {};
+      const { nickname, platform, product, title, content, stars, bookingCode } = req.body || {};
       if (!nickname?.trim() || !product?.trim() || !title?.trim() || !content?.trim())
         return res.status(400).json({ error: 'nickname, product, title, content는 필수다' });
       const s = parseInt(stars, 10);
       if (!(s >= 1 && s <= 5)) return res.status(400).json({ error: 'stars는 1~5' });
+
+      // FR Must: 실제 이용자만 작성 — 예약번호 본인인증 (데모: BK-숫자4자리 이상 형식 검증)
+      const verified = /^BK-\d{4,}$/i.test((bookingCode || '').trim());
+      if (!verified) return res.status(403).json({ error: '실제 이용 인증이 필요합니다. 예약확인서의 예약번호(예: BK-2026)를 입력하세요.' });
+
+      // NFR Should: 키워드·도배 제재
+      const modError = moderate(content);
+      if (modError) return res.status(422).json({ error: modError });
 
       // 작성자 get-or-create
       let user = (await sb(`users?select=id&nickname=eq.${encodeURIComponent(nickname.trim())}`))[0];
@@ -116,13 +133,26 @@ export default async function handler(req, res) {
         }))[0];
       }
 
+      // FR Could: 일일 작성 횟수 제한 + 신뢰도에 따른 한도 확대
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const todayRows = await sb(`reviews?select=reliability&user_id=eq.${user.id}&created_at=gte.${today.toISOString()}`);
+      const allMine = await sb(`reviews?select=reliability&user_id=eq.${user.id}&limit=50`);
+      const avgRel = allMine.length ? allMine.reduce((a, r) => a + r.reliability, 0) / allMine.length : 100;
+      const dailyLimit = avgRel >= 80 ? 5 : 3;
+      if (todayRows.length >= dailyLimit)
+        return res.status(429).json({ error: `오늘 작성 한도(${dailyLimit}건)를 초과했습니다. 평균 신뢰도 80% 이상이면 한도가 5건으로 늘어납니다.` });
+
+      // 도배: 동일 내용 중복 등록 차단
+      const dup = await sb(`reviews?select=id&user_id=eq.${user.id}&content=eq.${encodeURIComponent(content.trim().slice(0, 4000))}&limit=1`);
+      if (dup.length) return res.status(422).json({ error: '동일한 내용의 리뷰가 이미 등록되어 있습니다' });
+
       const reliability = await scoreReliability(product, content);
       const row = (await sb('reviews', {
         method: 'POST', headers: { 'Prefer': 'return=representation' },
         body: JSON.stringify({
           user_id: user.id, platform: (platform || '').slice(0, 50),
           product: product.trim().slice(0, 200), title: title.trim().slice(0, 200),
-          content: content.trim().slice(0, 4000), stars: s, reliability
+          content: content.trim().slice(0, 4000), stars: s, reliability, verified
         })
       }))[0];
       return res.status(200).json({ ...row, users: { id: user.id, nickname: nickname.trim() } });
