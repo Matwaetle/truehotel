@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">HotelHansung hotel placeholder</title>
+  <desc id="desc">Abstract Chicago hotel facade in forest green and warm stone</desc>
+  <rect width="800" height="500" fill="#d9d2c3"/>
+  <path d="M0 410h800v90H0z" fill="#17211b"/>
+  <path d="M125 120h550v310H125z" fill="#f7f4ed"/>
+  <path d="M95 120h610L615 66H185z" fill="#244735"/>
+  <g fill="#b9965b">
+    <path d="M175 165h70v78h-70zM285 165h70v78h-70zM445 165h70v78h-70zM555 165h70v78h-70z"/>
+    <path d="M175 275h70v78h-70zM285 275h70v78h-70zM445 275h70v78h-70zM555 275h70v78h-70z"/>
+  </g>
+  <path d="M355 294h90v136h-90z" fill="#17211b"/>
+  <text x="400" y="105" fill="#f7f4ed" font-family="Georgia,serif" font-size="30" text-anchor="middle">HOTEL HANSUNG</text>
+</svg>

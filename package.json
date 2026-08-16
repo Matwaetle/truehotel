@@ -6,6 +6,16 @@
     "node": ">=20"
   },
   "scripts": {
-    "check": "node --check api/score.js && node --check app/firebase.js && node --check app/session.js"
+    "check": "node --check api/score.js && node --check app/firebase.js && node --check app/session.js && node --check scripts/build-seed.js && node --check scripts/gen-ai-reviews.js && node --check scripts/prescore.js && node --check scripts/evaluate.js",
+    "seed:build": "node scripts/build-seed.js",
+    "seed:generate-ai": "node scripts/gen-ai-reviews.js",
+    "seed:prescore": "node scripts/prescore.js",
+    "seed:evaluate": "node scripts/evaluate.js",
+    "seed:inject": "node seed/inject.js"
+  },
+  "dependencies": {
+    "csv-parse": "^7.0.2",
+    "dotenv": "^17.4.2",
+    "firebase-admin": "^14.2.0"
   }
 }
