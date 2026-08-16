@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연결 점검 · TRUE REVIEW</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 640px;
+         margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+  h1 { font-size: 20px; }
+  .check { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 12px 0; }
+  .check h2 { font-size: 15px; margin: 0 0 8px; }
+  .status { font-weight: 700; }
+  .ok { color: #15803d; }
+  .fail { color: #b91c1c; }
+  .wait { color: #a16207; }
+  pre { background: #f5f5f5; padding: 10px; border-radius: 6px;
+        font-size: 12px; overflow-x: auto; white-space: pre-wrap; margin: 8px 0 0; }
+  button { font: inherit; padding: 8px 16px; border-radius: 8px;
+           border: 1px solid #333; background: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>연결 점검</h1>
+<p>네 항목이 전부 통과하면 뼈대를 올려도 된다. 하나라도 빨간색이면 그것부터 고친다.</p>
+
+<div class="check">
+  <h2>1. 배포 · 정적 파일 서빙</h2>
+  <p class="status ok">통과 — 이 페이지가 보이는 것 자체가 증거다.</p>
+</div>
+
+<div class="check">
+  <h2>2. Firebase 초기화</h2>
+  <p id="s2" class="status wait">확인 중…</p>
+  <pre id="d2"></pre>
+</div>
+
+<div class="check">
+  <h2>3. 구글 로그인 · 승인 도메인</h2>
+  <p id="s3" class="status wait">버튼을 눌러 확인</p>
+  <button id="btn3">구글로 로그인</button>
+  <pre id="d3"></pre>
+</div>
+
+<div class="check">
+  <h2>4. OpenRouter 프록시 (/api/score)</h2>
+  <p id="s4" class="status wait">버튼을 눌러 확인</p>
+  <button id="btn4">모델 호출</button>
+  <pre id="d4"></pre>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+// ▼▼▼ Firebase 콘솔 → 프로젝트 설정 → 내 앱 → 구성 에서 복사해 붙여넣기 ▼▼▼
+const firebaseConfig = {
+  apiKey: "여기에_붙여넣기",
+  authDomain: "여기에_붙여넣기.firebaseapp.com",
+  projectId: "여기에_붙여넣기",
+  storageBucket: "여기에_붙여넣기.firebasestorage.app",
+  messagingSenderId: "여기에_붙여넣기",
+  appId: "여기에_붙여넣기"
+};
+// ▲▲▲ 이 값들은 공개돼도 되는 값이다. 숨기려 애쓰지 마라 ▲▲▲
+
+const set = (id, cls, text) => {
+  const el = document.getElementById(id);
+  el.className = 'status ' + cls;
+  el.textContent = text;
+};
+const log = (id, obj) => {
+  document.getElementById(id).textContent =
+    typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+};
+
+let auth = null;
+
+// 2. Firebase 초기화
+try {
+  if (firebaseConfig.apiKey.includes('붙여넣기')) {
+    set('s2', 'fail', '실패 — firebaseConfig를 아직 채우지 않았다');
+    log('d2', 'index.html 안의 firebaseConfig 값을 콘솔에서 복사해 넣어라.');
+  } else {
+    auth = getAuth(initializeApp(firebaseConfig));
+    set('s2', 'ok', '통과 — SDK가 프로젝트에 붙었다');
+    log('d2', 'projectId: ' + firebaseConfig.projectId +
+              '\nauthDomain: ' + firebaseConfig.authDomain);
+  }
+} catch (e) {
+  set('s2', 'fail', '실패 — ' + e.code);
+  log('d2', e.message);
+}
+
+// 3. 구글 로그인
+document.getElementById('btn3').onclick = async () => {
+  if (!auth) return set('s3', 'fail', '2번을 먼저 통과시켜라');
+  set('s3', 'wait', '팝업 처리 중…');
+  try {
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+    set('s3', 'ok', '통과 — 로그인 성공');
+    log('d3', 'uid: ' + cred.user.uid +
+              '\n이름: ' + cred.user.displayName +
+              '\n이메일: ' + cred.user.email);
+  } catch (e) {
+    set('s3', 'fail', '실패 — ' + e.code);
+    const hint = {
+      'auth/unauthorized-domain':
+        '이 도메인이 승인 목록에 없다.\nFirebase 콘솔 → Authentication → Settings → 승인된 도메인 →\n' +
+        location.hostname + ' 을 추가해라 (https:// 없이).',
+      'auth/popup-blocked':
+        '브라우저가 팝업을 막았다. 주소창 팝업 차단 아이콘에서 허용해라.',
+      'auth/operation-not-allowed':
+        'Google 제공업체가 꺼져 있다.\nAuthentication → Sign-in method → Google → 사용 설정.',
+      'auth/popup-closed-by-user':
+        '팝업을 직접 닫았다. 다시 눌러라.'
+    }[e.code] || e.message;
+    log('d3', hint);
+  }
+};
+
+// 4. OpenRouter 프록시
+document.getElementById('btn4').onclick = async () => {
+  set('s4', 'wait', '호출 중… (10초쯤 걸릴 수 있다)');
+  try {
+    const r = await fetch('/api/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: '한 단어로만 답해라: 연결됨' })
+    });
+    const data = await r.json();
+    if (!r.ok || data.error) {
+      set('s4', 'fail', '실패 — HTTP ' + r.status);
+      log('d4', JSON.stringify(data, null, 2) +
+        '\n\n401이면 키가 틀렸거나 환경변수 추가 후 재배포를 안 한 것.\n' +
+        '404면 api/score.js가 레포 루트의 api/ 폴더에 없는 것.');
+    } else {
+      set('s4', 'ok', '통과 — 모델이 응답했다');
+      log('d4', data.choices?.[0]?.message?.content ?? JSON.stringify(data, null, 2));
+    }
+  } catch (e) {
+    set('s4', 'fail', '실패 — 네트워크 오류');
+    log('d4', e.message);
+  }
+};
+</script>
+
+</body>
+</html>
