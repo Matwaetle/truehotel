@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Firebase 서비스 계정 키 — 절대 커밋 금지
 serviceAccount.json
 *-firebase-adminsdk-*.json
@@ -16,11 +15,8 @@ node_modules/
 .vercel/
 .firebase/
 firebase-debug.log*
+supabase/.temp
+.omc/
 
 # OS
 .DS_Store
-=======
-.vercel
-supabase/.temp
-.omc
->>>>>>> 9c4b98d (Rebuild TRUE REVIEW: Supabase-backed trusted-reviewer platform with Claude scoring)
