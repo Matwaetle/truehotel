@@ -56,14 +56,27 @@ import { getAuth, GoogleAuthProvider, signInWithPopup }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 // ▼▼▼ Firebase 콘솔 → 프로젝트 설정 → 내 앱 → 구성 에서 복사해 붙여넣기 ▼▼▼
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "여기에_붙여넣기",
-  authDomain: "여기에_붙여넣기.firebaseapp.com",
-  projectId: "여기에_붙여넣기",
-  storageBucket: "여기에_붙여넣기.firebasestorage.app",
-  messagingSenderId: "여기에_붙여넣기",
-  appId: "여기에_붙여넣기"
+  apiKey: "AIzaSyBNnMnm23gzZdHyj-KVa_G8gEIi_eC0dpk",
+  authDomain: "unodostres-94c3d.firebaseapp.com",
+  projectId: "unodostres-94c3d",
+  storageBucket: "unodostres-94c3d.firebasestorage.app",
+  messagingSenderId: "669392127402",
+  appId: "1:669392127402:web:4bfdb5ba4e8449cd6f97d3",
+  measurementId: "G-PDMGS12N4T"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 // ▲▲▲ 이 값들은 공개돼도 되는 값이다. 숨기려 애쓰지 마라 ▲▲▲
 
 const set = (id, cls, text) => {
