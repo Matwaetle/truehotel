@@ -1,70 +1,622 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#17211b">
-  <title>TRUE REVIEW · HotelHansung</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUE REVIEW - Human Reviews, No Bots</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', 'Apple SD Gothic Neo', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        .sidebar-transition { transition: transform 0.3s ease; }
+        .reliability-tag { transition: all 0.5s ease; }
+    </style>
 </head>
-<body class="min-h-screen bg-stone-100 text-stone-900 antialiased">
-  <div class="min-h-screen lg:grid lg:grid-cols-[18rem_1fr]">
-    <aside class="border-b border-stone-700 bg-[#17211b] px-5 py-5 text-stone-50 lg:min-h-screen lg:border-b-0 lg:border-r">
-      <a href="/" class="inline-flex min-h-11 items-center text-lg font-black tracking-[0.18em]">TRUE REVIEW</a>
-      <p class="mt-1 text-xs text-stone-400">A trust layer for the synthetic web</p>
+<body class="flex flex-col h-screen overflow-hidden">
 
-      <nav class="mt-8" aria-label="플랫폼">
-        <p class="mb-2 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-stone-500">Platform</p>
-        <button type="button" class="flex min-h-11 w-full items-center gap-3 rounded-xl bg-white/10 px-4 text-left font-semibold ring-1 ring-white/10">
-          <span aria-hidden="true">H</span>
-          HotelHansung
-        </button>
-      </nav>
+    <!-- 상단 헤더 -->
+    <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex justify-between items-center z-50 relative">
+        <div class="flex items-center gap-3 md:gap-4">
+            <button id="toggleSidebar" class="p-2 hover:bg-gray-100 rounded-lg text-blue-900" aria-label="메뉴">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <h1 class="text-xl md:text-2xl font-bold text-blue-900 tracking-tight cursor-pointer" onclick="goHome()">TRUE REVIEW</h1>
+            <span class="hidden sm:inline text-xs text-gray-500 font-medium ml-2">Human Reviews, No Bots</span>
+        </div>
+        <div class="flex items-center gap-4 md:gap-6 text-gray-500">
+            <button onclick="openSearch('전체 플랫폼')" class="hover:text-blue-900" aria-label="검색">
+                <i class="fas fa-search text-lg"></i>
+            </button>
 
-      <a href="/check.html" class="mt-8 inline-flex min-h-11 items-center text-sm text-stone-400 underline decoration-stone-600 underline-offset-4">연결 진단 열기</a>
-    </aside>
+            <div class="relative">
+                <button id="trustedBtn" onclick="toggleTrustedDropdown()" class="hover:text-blue-900" aria-label="신뢰하는 사용자">
+                    <i class="fas fa-user-check text-lg"></i>
+                </button>
+                <div id="trustedDropdown" class="hidden absolute right-0 top-10 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-[90]">
+                    <div class="flex justify-between items-center mb-3">
+                        <p class="text-sm font-bold text-gray-800">내가 신뢰하는 사용자</p>
+                        <button onclick="filterByTrusted(null)" class="text-[11px] text-blue-600 hover:underline">전체보기</button>
+                    </div>
+                    <div id="trustedList" class="space-y-1"><p class="text-xs text-gray-400 p-2">불러오는 중…</p></div>
+                </div>
+            </div>
 
-    <main class="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8 lg:py-12">
-      <header class="max-w-2xl">
-        <p class="text-xs font-black uppercase tracking-[0.22em] text-emerald-800">HotelHansung</p>
-        <h1 class="mt-3 text-3xl font-black tracking-tight sm:text-5xl">믿을 사람을 고르면<br>리뷰가 달라집니다.</h1>
-        <p class="mt-4 text-base leading-7 text-stone-600">AI가 쓴 문장보다 사람 사이의 신뢰를 먼저 보여주는 호텔 리뷰 실험입니다.</p>
-      </header>
+            <button onclick="openProfileEdit()" class="w-10 h-10 rounded-full bg-blue-900 text-white font-bold flex items-center justify-center flex-shrink-0" aria-label="프로필 수정">
+                <span id="profileInitial">성</span>
+            </button>
+        </div>
+    </header>
 
-      <section class="mt-10 grid gap-4 sm:grid-cols-2" aria-label="앱 준비 상태">
-        <article class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">Session</p>
-          <h2 id="session-title" class="mt-3 text-lg font-bold">Firebase 연결 중</h2>
-          <p id="session-detail" class="mt-2 text-sm leading-6 text-stone-600" aria-live="polite">인증 상태와 사용자 문서를 확인하고 있습니다.</p>
-        </article>
+    <div class="flex flex-1 overflow-hidden relative">
 
-        <article class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">Next</p>
-          <h2 class="mt-3 text-lg font-bold">리뷰 데이터 준비 중</h2>
-          <p class="mt-2 text-sm leading-6 text-stone-600">호텔 검색, 신뢰 필터, 리뷰 작성 화면이 단계별로 연결됩니다.</p>
-        </article>
-      </section>
-    </main>
-  </div>
+        <div id="sidebarBackdrop" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/40 z-30"></div>
 
-  <script type="module">
-    import { subscribeSession } from './app/session.js';
+        <!-- 사이드바 -->
+        <aside id="sidebar" class="sidebar-transition -translate-x-full fixed inset-y-0 left-0 w-72 bg-[#1e3a8a] text-white flex flex-col p-6 z-40 overflow-y-auto">
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">메뉴</h3>
+            <button onclick="goHome(); toggleSidebar();" class="flex items-center gap-3 p-3 hover:bg-blue-800 rounded-xl text-left mb-1">
+                <i class="fas fa-house w-5"></i> <span class="text-sm font-semibold">홈</span>
+            </button>
+            <button onclick="toggleSidebar(); toggleTrustedDropdown();" class="flex items-center gap-3 p-3 hover:bg-blue-800 rounded-xl text-left mb-1">
+                <i class="fas fa-user-check w-5"></i> <span class="text-sm font-semibold">신뢰하는 사용자</span>
+            </button>
+            <button onclick="openWriteReview(); toggleSidebar();" class="flex items-center gap-3 p-3 hover:bg-blue-800 rounded-xl text-left mb-1">
+                <i class="fas fa-pen-to-square w-5"></i> <span class="text-sm font-semibold">리뷰 작성</span>
+            </button>
+            <button onclick="openProfileEdit(); toggleSidebar();" class="flex items-center gap-3 p-3 hover:bg-blue-800 rounded-xl text-left mb-1">
+                <i class="fas fa-pen w-5"></i> <span class="text-sm font-semibold">프로필 수정</span>
+            </button>
+            <div class="mt-auto pt-6 border-t border-blue-800 text-[11px] text-blue-300">
+                실제 후기를 남긴 사람만, 믿을 만한 사람의 후기만.
+            </div>
+        </aside>
 
-    const title = document.getElementById('session-title');
-    const detail = document.getElementById('session-detail');
+        <!-- 메인 콘텐츠 -->
+        <main id="mainContent" class="flex-1 overflow-y-auto p-4 md:p-10">
 
-    subscribeSession((session) => {
-      const copy = {
-        loading: ['Firebase 연결 중', '인증 상태를 확인하고 있습니다.'],
-        syncing: ['사용자 준비 중', '로그인 계정의 프로필 문서를 보장하고 있습니다.'],
-        anonymous: ['연결 완료', '로그인하지 않은 상태입니다.'],
-        authenticated: ['연결 완료', `${session.profile?.nickname || '사용자'} 계정이 준비됐습니다.`],
-        error: ['연결 오류', '사용자 초기화에 실패했습니다. 연결 진단 페이지를 확인하세요.']
-      }[session.status];
+            <!-- 바로가기 -->
+            <section class="mb-8 md:mb-10">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">바로가기</h3>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 md:gap-5 max-w-2xl">
+                    <button onclick="openSearch('쿠팡')" class="flex flex-col items-center gap-2">
+                        <div class="w-14 h-14 md:w-16 md:h-16 bg-orange-500 rounded-2xl flex items-center justify-center text-white text-[10px] font-bold shadow-sm hover:scale-105 transition-transform">Coupang</div>
+                        <span class="text-[11px] text-gray-600">쿠팡</span>
+                    </button>
+                    <button onclick="openSearch('네이버 쇼핑')" class="flex flex-col items-center gap-2">
+                        <div class="w-14 h-14 md:w-16 md:h-16 bg-green-500 rounded-2xl flex items-center justify-center text-white text-xl font-bold italic shadow-sm hover:scale-105 transition-transform">N</div>
+                        <span class="text-[11px] text-gray-600">네이버쇼핑</span>
+                    </button>
+                    <button onclick="openSearch('배달의민족')" class="flex flex-col items-center gap-2">
+                        <div class="w-14 h-14 md:w-16 md:h-16 bg-cyan-400 rounded-2xl flex items-center justify-center text-white text-xs font-bold shadow-sm hover:scale-105 transition-transform">배민</div>
+                        <span class="text-[11px] text-gray-600">배달의민족</span>
+                    </button>
+                    <button onclick="openSearch('요기요')" class="flex flex-col items-center gap-2">
+                        <div class="w-14 h-14 md:w-16 md:h-16 bg-pink-500 rounded-2xl flex items-center justify-center text-white text-[10px] font-bold shadow-sm hover:scale-105 transition-transform">요기요</div>
+                        <span class="text-[11px] text-gray-600">요기요</span>
+                    </button>
+                    <button onclick="openSearch('호텔스컴바인')" class="flex flex-col items-center gap-2">
+                        <div class="w-14 h-14 md:w-16 md:h-16 bg-blue-400 rounded-2xl flex items-center justify-center text-white shadow-sm hover:scale-105 transition-transform"><i class="fas fa-hotel"></i></div>
+                        <span class="text-[11px] text-gray-600 text-center leading-tight">호텔스컴바인</span>
+                    </button>
+                </div>
+            </section>
 
-      title.textContent = copy[0];
-      detail.textContent = copy[1];
+            <div id="homeSection" class="flex flex-col md:flex-row gap-6 md:gap-10">
+
+                <!-- 프로필 섹션 -->
+                <div class="w-full md:w-1/3">
+                    <div class="bg-white rounded-[32px] md:rounded-[40px] shadow-sm border border-gray-100 p-6 md:p-10 flex flex-col items-center">
+                        <div class="w-32 h-32 md:w-40 md:h-40 rounded-full mb-6 bg-blue-900 text-white flex items-center justify-center text-5xl font-black shadow-inner">
+                            <span id="profileInitialLarge">성</span>
+                        </div>
+                        <h2 id="profileName" class="text-xl md:text-2xl font-bold mb-1 text-center">성우</h2>
+                        <p class="text-xs text-gray-400 mb-2">신뢰하는 사용자 <b id="trustCount">0</b>명</p>
+                        <button onclick="openProfileEdit()" class="mt-4 px-10 py-3 border border-blue-900 text-blue-900 rounded-full font-semibold hover:bg-blue-50 transition-colors">
+                            프로필 수정
+                        </button>
+                        <button onclick="openWriteReview()" class="mt-3 px-10 py-3 rounded-full bg-blue-900 text-white font-semibold hover:bg-blue-800 transition-colors">
+                            <i class="fas fa-pen-to-square mr-1"></i> 리뷰 작성
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 리뷰 피드 섹션 -->
+                <div class="w-full md:w-2/3">
+                    <div class="flex items-center gap-3 mb-6 flex-wrap">
+                        <h3 class="text-lg md:text-xl font-bold text-gray-800">당신이 신뢰하는 인간의 리뷰</h3>
+                        <span id="trustFilterBadge" class="hidden text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-full items-center gap-2">
+                            <span id="trustFilterLabel"></span>
+                            <i class="fas fa-times cursor-pointer" onclick="filterByTrusted(null)"></i>
+                        </span>
+                    </div>
+                    <div id="homeReviews" class="space-y-4"><p class="text-sm text-gray-400 py-8 text-center">리뷰를 불러오는 중…</p></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 검색 오버레이 -->
+        <div id="searchOverlay" class="fixed inset-0 bg-white z-[60] flex flex-col items-center p-6 md:p-20 hidden">
+            <div class="w-full max-w-3xl text-center">
+                <div class="flex justify-between items-center mb-6 md:mb-10">
+                    <h2 id="searchTitle" class="text-2xl md:text-3xl font-bold text-blue-900">플랫폼 검색</h2>
+                    <button onclick="closeSearch()" class="text-gray-500 hover:text-black text-2xl"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="relative">
+                    <input type="text" id="searchInput" onkeypress="if(event.key==='Enter') showResults()" placeholder="검색어를 입력하세요..." class="w-full border-b-2 border-blue-900 p-4 text-xl md:text-2xl outline-none">
+                    <button onclick="showResults()" class="absolute right-4 top-4 md:top-6 text-xl md:text-2xl text-blue-900"><i class="fas fa-arrow-right"></i></button>
+                </div>
+                <p class="mt-6 text-gray-400 text-sm">해당 플랫폼의 "인간 인증 리뷰"만을 검색합니다. (예: 시그니엘 서울, 신라호텔, 맥북)</p>
+            </div>
+        </div>
+
+        <!-- 검색 결과 -->
+        <div id="resultsPage" class="fixed inset-0 bg-[#f8fafc] z-[70] hidden overflow-y-auto p-4 md:p-10 pt-20 md:pt-24">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6">
+                    <div>
+                        <button onclick="backToSearch()" class="text-blue-600 mb-2 flex items-center gap-2 hover:underline">
+                            <i class="fas fa-chevron-left"></i> 다시 검색하기
+                        </button>
+                        <h2 id="resultsHeading" class="text-2xl md:text-3xl font-bold text-gray-900">검색 결과</h2>
+                    </div>
+                    <div class="flex items-center gap-3 self-start flex-wrap">
+                        <select id="sortSelect" onchange="rerenderResults()" class="border border-gray-200 rounded-full px-4 py-3 text-sm font-semibold text-gray-700 bg-white shadow-sm outline-none">
+                            <option value="recent">최신순</option>
+                            <option value="stars">별점순</option>
+                            <option value="reliability">신뢰도순</option>
+                        </select>
+                        <button id="reliabilityBtn" onclick="toggleReliability()" class="bg-blue-900 text-white px-5 md:px-6 py-3 rounded-full font-bold shadow-lg hover:bg-blue-800 flex items-center gap-2 transition-all active:scale-95">
+                            <i class="fas fa-robot"></i> AI 신뢰도 확인
+                        </button>
+                        <button onclick="openWriteReview(lastKeyword)" class="border border-blue-900 text-blue-900 px-5 py-3 rounded-full font-bold hover:bg-blue-50 flex items-center gap-2">
+                            <i class="fas fa-pen-to-square"></i> 리뷰 쓰기
+                        </button>
+                    </div>
+                </div>
+
+                <div id="resultsSummary" class="mb-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-6"></div>
+                <div id="reviewsContainer" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <!-- 리뷰 상세 모달 -->
+        <div id="reviewDetailModal" class="fixed inset-0 bg-black/40 z-[80] hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative max-h-[85vh] overflow-y-auto">
+                <button onclick="closeModal('reviewDetailModal')" class="absolute right-5 top-5 text-gray-400 hover:text-black"><i class="fas fa-times text-xl"></i></button>
+                <div id="reviewDetailContent"></div>
+            </div>
+        </div>
+
+        <!-- 사용자 프로필(리뷰 내역) 모달 — 스토리 3 -->
+        <div id="userProfileModal" class="fixed inset-0 bg-black/40 z-[85] hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative max-h-[85vh] overflow-y-auto">
+                <button onclick="closeModal('userProfileModal')" class="absolute right-5 top-5 text-gray-400 hover:text-black"><i class="fas fa-times text-xl"></i></button>
+                <div id="userProfileContent"></div>
+            </div>
+        </div>
+
+        <!-- 리뷰 작성 모달 -->
+        <div id="writeReviewModal" class="fixed inset-0 bg-black/40 z-[85] hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-8 relative max-h-[85vh] overflow-y-auto">
+                <button onclick="closeModal('writeReviewModal')" class="absolute right-5 top-5 text-gray-400 hover:text-black"><i class="fas fa-times text-xl"></i></button>
+                <h3 class="text-lg font-bold mb-6">리뷰 작성</h3>
+                <label class="text-xs text-gray-400">플랫폼</label>
+                <select id="wrPlatform" class="w-full border-b-2 border-gray-200 p-2 mb-4 outline-none bg-white">
+                    <option>호텔스컴바인</option><option>쿠팡</option><option>네이버 쇼핑</option><option>배달의민족</option><option>요기요</option><option>기타</option>
+                </select>
+                <label class="text-xs text-gray-400">상품/서비스명</label>
+                <input id="wrProduct" class="w-full border-b-2 border-gray-200 focus:border-blue-900 p-2 mb-4 outline-none" placeholder="예: 시그니엘 서울">
+                <label class="text-xs text-gray-400">제목</label>
+                <input id="wrTitle" class="w-full border-b-2 border-gray-200 focus:border-blue-900 p-2 mb-4 outline-none" placeholder="리뷰 제목">
+                <label class="text-xs text-gray-400">별점</label>
+                <div id="wrStars" class="text-2xl text-orange-400 mb-4 cursor-pointer select-none"></div>
+                <label class="text-xs text-gray-400">내용</label>
+                <textarea id="wrContent" rows="4" class="w-full border-2 border-gray-200 focus:border-blue-900 rounded-xl p-3 outline-none mb-2" placeholder="실제 경험을 구체적으로 적을수록 AI 신뢰도가 높게 나옵니다."></textarea>
+                <p id="wrError" class="text-red-600 text-xs mb-4"></p>
+                <button id="wrSubmit" onclick="submitReview()" class="w-full py-3 rounded-full bg-blue-900 text-white font-semibold hover:bg-blue-800 disabled:opacity-50">등록</button>
+            </div>
+        </div>
+
+        <!-- 프로필 수정 모달 -->
+        <div id="profileEditModal" class="fixed inset-0 bg-black/40 z-[85] hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-sm w-full p-8">
+                <h3 class="text-lg font-bold mb-6">프로필 수정</h3>
+                <label class="text-xs text-gray-400">닉네임</label>
+                <input id="profileNameInput" type="text" class="w-full border-b-2 border-blue-900 p-2 text-lg outline-none mb-8">
+                <div class="flex gap-3">
+                    <button onclick="closeModal('profileEditModal')" class="flex-1 py-3 rounded-full border border-gray-300 text-gray-500 font-semibold">취소</button>
+                    <button onclick="saveProfile()" class="flex-1 py-3 rounded-full bg-blue-900 text-white font-semibold">저장</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 토스트 -->
+        <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-5 py-3 rounded-full shadow-xl z-[99] hidden"></div>
+    </div>
+
+    <script>
+    // ===== 상태 =====
+    let me = localStorage.getItem('tr_nickname') || '성우';
+    let trustedUsers = [];          // [{id, nickname, bio}]
+    let currentTrustFilter = null;  // {id, nickname} | null
+    let reliabilityOn = false;
+    let lastKeyword = '';
+    let lastResults = [];
+    let wrStarValue = 5;
+
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const stars = n => '<i class="fas fa-star"></i>'.repeat(n) + '<i class="far fa-star"></i>'.repeat(5-n);
+    const trustedIds = () => new Set(trustedUsers.map(u => u.id));
+
+    function timeAgo(iso) {
+        const s = (Date.now() - new Date(iso).getTime()) / 1000;
+        if (s < 3600) return Math.max(1, Math.floor(s/60)) + '분 전';
+        if (s < 86400) return Math.floor(s/3600) + '시간 전';
+        if (s < 86400*7) return Math.floor(s/86400) + '일 전';
+        return new Date(iso).toLocaleDateString('ko-KR');
+    }
+    function toast(msg) {
+        const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
+        clearTimeout(t._h); t._h = setTimeout(() => t.classList.add('hidden'), 2200);
+    }
+    async function api(path, opts) {
+        const r = await fetch(path, opts);
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'HTTP ' + r.status);
+        return data;
+    }
+
+    // 신뢰도 뱃지: Verified Human은 신뢰도 80 이상만 (12%인데 verified라는 모순 제거)
+    function humanBadge(rel) {
+        if (rel >= 80) return '<span class="text-[10px] text-green-600 font-bold bg-green-50 border border-green-100 px-2 py-1 rounded-full"><i class="fas fa-check-circle mr-1"></i>Verified Human</span>';
+        if (rel < 40) return '<span class="text-[10px] text-red-500 font-bold bg-red-50 border border-red-100 px-2 py-1 rounded-full"><i class="fas fa-robot mr-1"></i>봇 의심</span>';
+        return '<span class="text-[10px] text-gray-500 font-bold bg-gray-50 border border-gray-200 px-2 py-1 rounded-full">미검증</span>';
+    }
+    function relTag(rel) {
+        const cls = rel >= 80 ? 'text-green-600 border-green-200 bg-green-50' : rel >= 40 ? 'text-orange-500 border-orange-200 bg-orange-50' : 'text-red-500 border-red-200 bg-red-50';
+        return `<span class="reliability-tag text-xs font-black px-2 py-1 rounded border ${cls}">신뢰도 ${rel}%</span>`;
+    }
+    function trustBtnHtml(user, small) {
+        const on = trustedIds().has(user.id);
+        return `<button onclick="event.stopPropagation(); toggleTrust('${user.id}', '${esc(user.nickname)}')"
+            class="${small ? 'text-[11px] px-3 py-1' : 'text-sm px-5 py-2'} rounded-full font-bold border transition-colors ${on ? 'bg-blue-900 text-white border-blue-900' : 'text-blue-900 border-blue-900 hover:bg-blue-50'}">
+            <i class="fas ${on ? 'fa-user-check' : 'fa-user-plus'} mr-1"></i>${on ? '신뢰 중' : '신뢰 등록'}</button>`;
+    }
+
+    // ===== 프로필 =====
+    function renderProfile() {
+        $('profileName').innerText = me;
+        $('profileInitial').innerText = me[0] || '?';
+        $('profileInitialLarge').innerText = me[0] || '?';
+    }
+    function openProfileEdit() {
+        $('profileNameInput').value = me;
+        $('profileEditModal').classList.remove('hidden');
+        $('profileNameInput').focus();
+    }
+    async function saveProfile() {
+        const v = $('profileNameInput').value.trim();
+        if (!v) return toast('닉네임을 입력해주세요');
+        me = v; localStorage.setItem('tr_nickname', me);
+        renderProfile(); closeModal('profileEditModal');
+        await loadTrusted(); await loadHome();
+        toast('프로필이 변경되었습니다');
+    }
+
+    // ===== 신뢰하는 사용자 (스토리 1) =====
+    async function loadTrusted() {
+        try {
+            trustedUsers = await api('/api/trust?truster=' + encodeURIComponent(me));
+        } catch (e) { trustedUsers = []; console.error(e); }
+        $('trustCount').innerText = trustedUsers.length;
+        const el = $('trustedList');
+        el.innerHTML = trustedUsers.length ? trustedUsers.map(u => `
+            <div class="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50">
+                <button onclick="filterByTrusted(${JSON.stringify({id:u.id,nickname:u.nickname}).replace(/"/g,'&quot;')})" class="flex items-center gap-2 flex-1 text-left min-w-0">
+                    <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">${esc(u.nickname[0])}</div>
+                    <span class="text-sm text-gray-700 truncate">${esc(u.nickname)}</span>
+                </button>
+                <button onclick="openUserProfile('${u.id}')" class="text-[11px] text-gray-400 hover:text-blue-700 flex-shrink-0" title="리뷰 내역">내역</button>
+                <button onclick="toggleTrust('${u.id}', '${esc(u.nickname)}')" class="text-[11px] text-red-400 hover:text-red-600 flex-shrink-0" title="신뢰 해제"><i class="fas fa-user-minus"></i></button>
+            </div>`).join('')
+            : '<p class="text-xs text-gray-400 p-2">아직 없어요. 리뷰에서 작성자를 눌러 "신뢰 등록"을 해보세요.</p>';
+    }
+    async function toggleTrust(userId, nickname) {
+        const on = trustedIds().has(userId);
+        try {
+            await api('/api/trust', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ truster: me, trustedUserId: userId, trust: !on })
+            });
+            toast(on ? `${nickname}님을 신뢰 목록에서 해제했습니다` : `${nickname}님을 신뢰 목록에 등록했습니다`);
+            if (on && currentTrustFilter?.id === userId) currentTrustFilter = null;
+            await loadTrusted();
+            await loadHome();
+            // 열린 모달/결과 화면 갱신
+            if (!$('userProfileModal').classList.contains('hidden') && lastProfileUserId) openUserProfile(lastProfileUserId);
+            if (!$('resultsPage').classList.contains('hidden')) rerenderResults();
+        } catch (e) { toast('실패: ' + e.message); }
+    }
+    function toggleTrustedDropdown() { $('trustedDropdown').classList.toggle('hidden'); }
+    document.addEventListener('click', (e) => {
+        const dd = $('trustedDropdown'), btn = $('trustedBtn');
+        if (!dd.contains(e.target) && !btn.contains(e.target)) dd.classList.add('hidden');
     });
-  </script>
+
+    // ===== 홈 피드 (스토리 2: 신뢰 사용자 리뷰만) =====
+    function filterByTrusted(user) {
+        currentTrustFilter = user;
+        const badge = $('trustFilterBadge');
+        if (user) {
+            badge.classList.remove('hidden'); badge.classList.add('inline-flex');
+            $('trustFilterLabel').innerText = `${user.nickname}님의 리뷰만 보는 중`;
+        } else {
+            badge.classList.add('hidden'); badge.classList.remove('inline-flex');
+        }
+        $('trustedDropdown').classList.add('hidden');
+        goHome();
+        loadHome();
+    }
+    async function loadHome() {
+        const box = $('homeReviews');
+        try {
+            let rows;
+            if (currentTrustFilter) {
+                rows = await api('/api/reviews?userId=' + currentTrustFilter.id);
+            } else {
+                rows = await api('/api/reviews?home=1&truster=' + encodeURIComponent(me));
+            }
+            if (!rows.length) { box.innerHTML = '<p class="text-sm text-gray-400 py-8 text-center">아직 리뷰가 없어요.</p>'; return; }
+            box.innerHTML = '';
+            rows.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center gap-4 cursor-pointer hover:shadow-md transition-shadow';
+                card.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-lg truncate">${esc(r.title)}</h4>
+                        <p class="text-sm text-gray-500 font-medium mb-1">${esc(r.product)} ·
+                            <button class="text-blue-700 hover:underline" onclick="event.stopPropagation(); openUserProfile('${r.users.id}')">${esc(r.users.nickname)}</button>
+                            ${trustedIds().has(r.users.id) ? '<i class="fas fa-user-check text-blue-700 text-xs ml-1" title="신뢰하는 사용자"></i>' : ''}
+                        </p>
+                        <p class="text-sm text-gray-600 line-clamp-1">${esc(r.content)}</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                        <div class="flex text-orange-400 text-xs">${stars(r.stars)}</div>
+                        <div class="flex items-center gap-2">${humanBadge(r.reliability)}
+                            <span class="text-[10px] text-gray-400">${timeAgo(r.created_at)}</span></div>
+                    </div>`;
+                card.addEventListener('click', () => openReviewDetail(r));
+                box.appendChild(card);
+            });
+        } catch (e) {
+            box.innerHTML = `<p class="text-sm text-red-500 py-8 text-center">리뷰 로드 실패: ${esc(e.message)}</p>`;
+        }
+    }
+    function goHome() {
+        $('resultsPage').classList.add('hidden');
+        $('searchOverlay').classList.add('hidden');
+        $('homeSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ===== 검색 =====
+    function openSearch(platform) {
+        $('searchOverlay').classList.remove('hidden');
+        $('searchTitle').innerText = `${platform} 내 검색`;
+        $('searchInput').value = '';
+        $('searchInput').placeholder = `${platform}에서 이용한 서비스명을 입력하세요...`;
+        $('searchInput').focus();
+    }
+    function closeSearch() { $('searchOverlay').classList.add('hidden'); }
+    function backToSearch() { $('resultsPage').classList.add('hidden'); $('searchOverlay').classList.remove('hidden'); $('searchInput').focus(); }
+
+    async function showResults() {
+        const keyword = $('searchInput').value.trim();
+        if (!keyword) return toast('검색어를 입력해주세요');
+        lastKeyword = keyword;
+        reliabilityOn = false; resetReliabilityButton();
+        $('sortSelect').value = 'recent';
+        closeSearch();
+        $('resultsPage').classList.remove('hidden');
+        $('resultsHeading').innerText = `'${keyword}' 에 대한 인간 리뷰`;
+        $('resultsSummary').innerHTML = '<p class="text-sm text-gray-400">검색 중…</p>';
+        $('reviewsContainer').innerHTML = '';
+        try {
+            lastResults = await api('/api/reviews?product=' + encodeURIComponent(keyword));
+            renderSummary(); rerenderResults();
+        } catch (e) {
+            $('resultsSummary').innerHTML = `<p class="text-sm text-red-500">검색 실패: ${esc(e.message)}</p>`;
+        }
+    }
+    function renderSummary() {
+        const el = $('resultsSummary');
+        if (!lastResults.length) {
+            el.innerHTML = `<p class="text-sm text-gray-500">'${esc(lastKeyword)}' 리뷰가 아직 없습니다. 첫 리뷰를 남겨보세요!</p>`;
+            return;
+        }
+        const avg = (lastResults.reduce((s, r) => s + r.stars, 0) / lastResults.length).toFixed(1);
+        // 진짜 평점: 신뢰도 80 이상 리뷰만의 평균 (봇 리뷰 제외 평점)
+        const real = lastResults.filter(r => r.reliability >= 80);
+        const realAvg = real.length ? (real.reduce((s, r) => s + r.stars, 0) / real.length).toFixed(1) : '—';
+        el.innerHTML = `
+            <div><div class="text-3xl font-black text-blue-900">${avg}</div><p class="text-[11px] text-gray-400">전체 평균 (${lastResults.length}건)</p></div>
+            <div class="border-l border-gray-100 pl-6"><div class="text-3xl font-black text-green-600">${realAvg}</div><p class="text-[11px] text-gray-400">인간 인증 리뷰 평균 (${real.length}건)</p></div>
+            <div class="hidden sm:block"><div class="text-orange-400 text-sm mb-1">${stars(Math.round(avg))}</div>
+            <p class="text-xs text-gray-500">봇 의심 리뷰를 제외하면 평점이 달라질 수 있습니다</p></div>`;
+    }
+    function sortedResults() {
+        const mode = $('sortSelect').value;
+        const arr = [...lastResults];
+        if (mode === 'stars') arr.sort((a, b) => b.stars - a.stars);
+        else if (mode === 'reliability') arr.sort((a, b) => b.reliability - a.reliability);
+        else arr.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        return arr;
+    }
+    function rerenderResults() {
+        const container = $('reviewsContainer');
+        container.innerHTML = '';
+        const arr = sortedResults();
+        if (!arr.length) {
+            container.innerHTML = '<p class="text-sm text-gray-400 py-10 text-center">검색 결과가 없습니다.</p>';
+            return;
+        }
+        arr.forEach(r => {
+            const card = document.createElement('div');
+            card.className = 'bg-white p-5 md:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow';
+            card.innerHTML = `
+                <div class="flex justify-between items-start gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <h4 class="font-bold text-lg text-gray-800">${esc(r.title)}</h4>
+                        ${reliabilityOn ? relTag(r.reliability) : ''}
+                    </div>
+                    <div class="text-orange-400 text-xs whitespace-nowrap">${stars(r.stars)}</div>
+                </div>
+                <p class="text-gray-500 text-sm">${esc(r.product)} ·
+                    <button class="text-blue-700 hover:underline" onclick="event.stopPropagation(); openUserProfile('${r.users.id}')">${esc(r.users.nickname)}</button>
+                    ${trustedIds().has(r.users.id) ? '<i class="fas fa-user-check text-blue-700 text-xs ml-1" title="신뢰하는 사용자"></i>' : ''}
+                    · ${timeAgo(r.created_at)}</p>
+                <p class="text-gray-600 mt-1 line-clamp-2">${esc(r.content)}</p>`;
+            card.addEventListener('click', () => openReviewDetail(r));
+            container.appendChild(card);
+        });
+    }
+    function toggleReliability() {
+        reliabilityOn = !reliabilityOn;
+        const btn = $('reliabilityBtn');
+        if (reliabilityOn) {
+            $('sortSelect').value = 'reliability';
+            btn.innerHTML = '<i class="fas fa-rotate-left"></i> 신뢰도 표시 끄기';
+            btn.classList.replace('bg-blue-900', 'bg-green-600');
+            btn.classList.replace('hover:bg-blue-800', 'hover:bg-green-700');
+        } else {
+            $('sortSelect').value = 'recent';
+            resetReliabilityButton();
+        }
+        rerenderResults();
+    }
+    function resetReliabilityButton() {
+        const btn = $('reliabilityBtn');
+        btn.innerHTML = '<i class="fas fa-robot"></i> AI 신뢰도 확인';
+        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        btn.classList.add('bg-blue-900', 'hover:bg-blue-800');
+    }
+
+    // ===== 리뷰 상세 =====
+    function openReviewDetail(r) {
+        $('reviewDetailContent').innerHTML = `
+            <div class="flex items-center gap-3 mb-4 flex-wrap">
+                <button onclick="closeModal('reviewDetailModal'); openUserProfile('${r.users.id}')" class="flex items-center gap-3 text-left">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center">${esc(r.users.nickname[0])}</div>
+                    <div>
+                        <p class="font-semibold text-gray-800">${esc(r.users.nickname)} <i class="fas fa-chevron-right text-[10px] text-gray-300"></i></p>
+                        ${humanBadge(r.reliability)}
+                    </div>
+                </button>
+                <span class="ml-auto">${relTag(r.reliability)}</span>
+            </div>
+            <h3 class="text-xl font-bold mb-1">${esc(r.title)}</h3>
+            <p class="text-sm text-gray-400 mb-4">${esc(r.platform || '')} ${r.platform ? '·' : ''} ${esc(r.product)} · ${timeAgo(r.created_at)}</p>
+            <div class="text-orange-400 mb-4">${stars(r.stars)}</div>
+            <p class="text-gray-600 leading-relaxed whitespace-pre-wrap">${esc(r.content)}</p>
+            <div class="mt-6 pt-4 border-t border-gray-100">${trustBtnHtml(r.users, false)}</div>`;
+        $('reviewDetailModal').classList.remove('hidden');
+    }
+
+    // ===== 사용자 리뷰 내역 (스토리 3) =====
+    let lastProfileUserId = null;
+    async function openUserProfile(userId) {
+        lastProfileUserId = userId;
+        const box = $('userProfileContent');
+        box.innerHTML = '<p class="text-sm text-gray-400 py-6 text-center">불러오는 중…</p>';
+        $('userProfileModal').classList.remove('hidden');
+        try {
+            const rows = await api('/api/reviews?userId=' + userId);
+            const u = rows[0]?.users || trustedUsers.find(x => x.id === userId) || { id: userId, nickname: '?', bio: '' };
+            const avgRel = rows.length ? Math.round(rows.reduce((s, r) => s + r.reliability, 0) / rows.length) : 0;
+            box.innerHTML = `
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="w-14 h-14 rounded-full bg-blue-100 text-blue-700 text-xl font-bold flex items-center justify-center">${esc(u.nickname[0])}</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-lg">${esc(u.nickname)}</p>
+                        <p class="text-xs text-gray-500">${esc(u.bio || '')}</p>
+                    </div>
+                    ${trustBtnHtml(u, true)}
+                </div>
+                <div class="flex gap-4 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">
+                    <span>리뷰 <b class="text-gray-800">${rows.length}</b>건</span>
+                    <span>평균 신뢰도 <b class="${avgRel >= 80 ? 'text-green-600' : avgRel >= 40 ? 'text-orange-500' : 'text-red-500'}">${avgRel}%</b></span>
+                </div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">전체 리뷰 내역</p>
+                <div class="space-y-3">
+                ${rows.length ? rows.map(r => `
+                    <div class="border border-gray-100 rounded-xl p-4 hover:shadow-sm">
+                        <div class="flex justify-between items-start gap-2">
+                            <p class="font-semibold text-sm">${esc(r.title)}</p>
+                            <span class="text-orange-400 text-[10px] whitespace-nowrap">${stars(r.stars)}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mb-1">${esc(r.product)} · ${timeAgo(r.created_at)} · ${relTag(r.reliability)}</p>
+                        <p class="text-xs text-gray-600 line-clamp-2">${esc(r.content)}</p>
+                    </div>`).join('') : '<p class="text-sm text-gray-400 text-center py-4">아직 작성한 리뷰가 없습니다.</p>'}
+                </div>`;
+        } catch (e) {
+            box.innerHTML = `<p class="text-sm text-red-500 py-6 text-center">로드 실패: ${esc(e.message)}</p>`;
+        }
+    }
+
+    // ===== 리뷰 작성 =====
+    function renderWrStars() {
+        $('wrStars').innerHTML = Array.from({length: 5}, (_, i) =>
+            `<i class="${i < wrStarValue ? 'fas' : 'far'} fa-star" onclick="wrStarValue=${i+1}; renderWrStars()"></i>`).join('');
+    }
+    function openWriteReview(product) {
+        $('wrProduct').value = typeof product === 'string' ? product : '';
+        $('wrTitle').value = ''; $('wrContent').value = ''; $('wrError').textContent = '';
+        wrStarValue = 5; renderWrStars();
+        $('writeReviewModal').classList.remove('hidden');
+        ($('wrProduct').value ? $('wrTitle') : $('wrProduct')).focus();
+    }
+    async function submitReview() {
+        const product = $('wrProduct').value.trim(), title = $('wrTitle').value.trim(), content = $('wrContent').value.trim();
+        if (!product || !title || content.length < 10) {
+            $('wrError').textContent = '상품명, 제목을 채우고 내용은 10자 이상 적어주세요.';
+            return;
+        }
+        const btn = $('wrSubmit');
+        btn.disabled = true; btn.textContent = 'AI가 신뢰도를 채점하는 중…';
+        try {
+            const row = await api('/api/reviews', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ nickname: me, platform: $('wrPlatform').value, product, title, content, stars: wrStarValue })
+            });
+            closeModal('writeReviewModal');
+            toast(`등록 완료! AI 신뢰도 ${row.reliability}%로 채점되었습니다`);
+            await loadHome();
+            if (!$('resultsPage').classList.contains('hidden') && lastKeyword) {
+                lastResults = await api('/api/reviews?product=' + encodeURIComponent(lastKeyword));
+                renderSummary(); rerenderResults();
+            }
+        } catch (e) {
+            $('wrError').textContent = '등록 실패: ' + e.message;
+        } finally {
+            btn.disabled = false; btn.textContent = '등록';
+        }
+    }
+
+    // ===== 공통 =====
+    function closeModal(id) { $(id).classList.add('hidden'); }
+    function toggleSidebar() {
+        $('sidebar').classList.toggle('-translate-x-full');
+        $('sidebarBackdrop').classList.toggle('hidden');
+    }
+    $('toggleSidebar').addEventListener('click', toggleSidebar);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') ['reviewDetailModal','userProfileModal','writeReviewModal','profileEditModal'].forEach(closeModal), closeSearch();
+    });
+
+    // ===== 초기화 =====
+    renderProfile();
+    loadTrusted().then(loadHome);
+    </script>
 </body>
 </html>
