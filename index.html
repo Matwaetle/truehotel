@@ -1,70 +1,1256 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#17211b">
-  <title>TRUE REVIEW · HotelHansung</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUE REVIEW — 인간이 남긴 리뷰만</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css">
+    <style>
+        :root {
+            --ink: #1A1A18;
+            --parchment: #F5F2EC;
+            --forest: #2C4A35;
+            --forest-light: #3A5E45;
+            --forest-muted: #4D7A5C;
+            --gold: #B8922A;
+            --gold-light: #D4AC4A;
+            --mist: #E8E4DC;
+            --mist-dark: #D4CFC5;
+            --verified-green: #3A6B4A;
+            --bot-red: #8B2E2E;
+            --card-bg: #FDFBF8;
+            --white: #FFFFFF;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+            background-color: var(--parchment);
+            color: var(--ink);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Display face for key headings */
+        .display-font {
+            font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* Sidebar */
+        .sidebar-transition { transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* 인라인 display:flex보다 우선해야 모달이 닫힌다 */
+        .hidden { display: none !important; }
+
+        /* Cards */
+        .review-card {
+            background: var(--card-bg);
+            border: 1px solid var(--mist);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .review-card:hover {
+            border-color: var(--forest-muted);
+            box-shadow: 0 4px 24px rgba(44, 74, 53, 0.08);
+        }
+
+        /* Verified badge */
+        .badge-verified-human {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+            color: var(--verified-green);
+            background: rgba(58, 107, 74, 0.08);
+            border: 1px solid rgba(58, 107, 74, 0.25);
+            padding: 2px 8px; border-radius: 999px;
+        }
+        .badge-bot-suspect {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+            color: var(--bot-red);
+            background: rgba(139, 46, 46, 0.07);
+            border: 1px solid rgba(139, 46, 46, 0.2);
+            padding: 2px 8px; border-radius: 999px;
+        }
+        .badge-unverified {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 600;
+            color: #7A7468;
+            background: rgba(122, 116, 104, 0.08);
+            border: 1px solid rgba(122, 116, 104, 0.2);
+            padding: 2px 8px; border-radius: 999px;
+        }
+        .badge-stayed {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+            color: var(--forest);
+            background: rgba(44, 74, 53, 0.08);
+            border: 1px solid rgba(44, 74, 53, 0.25);
+            padding: 2px 8px; border-radius: 999px;
+        }
+        .badge-reliability {
+            font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+            padding: 2px 8px; border-radius: 4px;
+            border: 1px solid;
+            transition: all 0.35s ease;
+        }
+
+        /* Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, var(--mist) 25%, var(--mist-dark) 50%, var(--mist) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 6px;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Star rendering */
+        .stars-filled { color: var(--gold); }
+        .stars-empty { color: var(--mist-dark); }
+
+        /* Section divider */
+        .section-rule {
+            border: none;
+            border-top: 1px solid var(--mist);
+            margin: 0;
+        }
+
+        /* Group label for trusted/verified in search results */
+        .group-label {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--forest);
+            border-left: 2px solid var(--forest);
+            padding-left: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* Search hero input */
+        .hero-search-input {
+            background: var(--white);
+            border: 1.5px solid var(--mist);
+            border-radius: 4px;
+            font-size: 1.05rem;
+            font-family: 'Pretendard', sans-serif;
+            color: var(--ink);
+            width: 100%;
+            padding: 14px 52px 14px 18px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            caret-color: var(--forest);
+        }
+        .hero-search-input:focus {
+            border-color: var(--forest);
+            box-shadow: 0 0 0 3px rgba(44, 74, 53, 0.1);
+        }
+        .hero-search-input::placeholder { color: var(--mist-dark); }
+
+        /* Button system */
+        .btn-primary {
+            background: var(--forest);
+            color: var(--white);
+            border: 1.5px solid var(--forest);
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 22px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary:hover { background: var(--forest-light); }
+        .btn-primary:active { transform: scale(0.98); }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--forest);
+            border: 1.5px solid var(--forest);
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 22px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-outline:hover { background: rgba(44, 74, 53, 0.06); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--ink);
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .btn-ghost:hover { background: var(--mist); }
+
+        /* Modal overlay */
+        .modal-overlay {
+            background: rgba(26, 26, 24, 0.6);
+            backdrop-filter: blur(2px);
+        }
+
+        /* Modal panel */
+        .modal-panel {
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--mist);
+        }
+
+        /* Profile avatar */
+        .avatar {
+            background: var(--forest);
+            color: var(--white);
+            font-weight: 800;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Dropdown */
+        .dropdown-panel {
+            background: var(--white);
+            border: 1px solid var(--mist);
+            border-radius: 6px;
+            box-shadow: 0 8px 32px rgba(26, 26, 24, 0.12);
+        }
+
+        /* Gold accent divider */
+        .gold-rule {
+            display: block;
+            width: 32px;
+            height: 2px;
+            background: var(--gold);
+            margin: 12px 0 20px;
+        }
+
+        /* Summary metric */
+        .metric-num {
+            font-family: 'Iowan Old Style', Palatino, Georgia, serif;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+
+        /* Reliability tag inline */
+        .rel-high { color: #2D6040; background: rgba(45, 96, 64, 0.08); border-color: rgba(45, 96, 64, 0.2); }
+        .rel-mid { color: #7A5A0A; background: rgba(122, 90, 10, 0.08); border-color: rgba(122, 90, 10, 0.2); }
+        .rel-low { color: var(--bot-red); background: rgba(139, 46, 46, 0.07); border-color: rgba(139, 46, 46, 0.2); }
+
+        /* Toast */
+        #toast {
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--ink);
+            color: var(--parchment);
+            border-radius: 4px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        }
+
+        /* Write review modal input style */
+        .form-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1.5px solid var(--mist-dark);
+            background: transparent;
+            padding: 8px 0;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 15px;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 20px;
+        }
+        .form-input:focus { border-color: var(--forest); }
+        .form-input::placeholder { color: var(--mist-dark); }
+
+        .form-textarea {
+            width: 100%;
+            border: 1.5px solid var(--mist);
+            border-radius: 4px;
+            background: var(--parchment);
+            padding: 12px 14px;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 14px;
+            color: var(--ink);
+            outline: none;
+            resize: vertical;
+            transition: border-color 0.2s;
+            margin-bottom: 6px;
+        }
+        .form-textarea:focus { border-color: var(--forest); }
+
+        .form-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8A8478;
+            margin-bottom: 4px;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            background: var(--ink);
+        }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(245, 242, 236, 0.7);
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+            margin-bottom: 2px;
+            text-align: left;
+            border: none;
+            background: transparent;
+            width: 100%;
+        }
+        .sidebar-link:hover { background: rgba(255,255,255,0.07); color: var(--parchment); }
+        .sidebar-link i { width: 16px; text-align: center; color: var(--gold); }
+
+        /* Shortcut buttons */
+        .platform-chip {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            cursor: pointer; transition: transform 0.15s ease;
+        }
+        .platform-chip:hover .platform-icon { transform: translateY(-2px); }
+        .platform-icon {
+            width: 48px; height: 48px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800;
+            color: white;
+            transition: transform 0.15s ease;
+            letter-spacing: -0.02em;
+        }
+
+        /* Search results sort bar */
+        .sort-select {
+            border: 1.5px solid var(--mist);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+            background: var(--white);
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Trust filter badge */
+        #trustFilterBadge {
+            background: rgba(44, 74, 53, 0.08);
+            border: 1px solid rgba(44, 74, 53, 0.2);
+            color: var(--forest);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        #trustFilterBadge.active { display: inline-flex; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--mist-dark); border-radius: 3px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, .sidebar-transition { transition: none !important; animation: none !important; }
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-stone-100 text-stone-900 antialiased">
-  <div class="min-h-screen lg:grid lg:grid-cols-[18rem_1fr]">
-    <aside class="border-b border-stone-700 bg-[#17211b] px-5 py-5 text-stone-50 lg:min-h-screen lg:border-b-0 lg:border-r">
-      <a href="/" class="inline-flex min-h-11 items-center text-lg font-black tracking-[0.18em]">TRUE REVIEW</a>
-      <p class="mt-1 text-xs text-stone-400">A trust layer for the synthetic web</p>
+<body class="flex flex-col" style="height: 100dvh; overflow: hidden;">
 
-      <nav class="mt-8" aria-label="플랫폼">
-        <p class="mb-2 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-stone-500">Platform</p>
-        <button type="button" class="flex min-h-11 w-full items-center gap-3 rounded-xl bg-white/10 px-4 text-left font-semibold ring-1 ring-white/10">
-          <span aria-hidden="true">H</span>
-          HotelHansung
-        </button>
-      </nav>
+    <!-- ═══ HEADER ═══ -->
+    <header style="background: var(--white); border-bottom: 1px solid var(--mist); z-index: 50; position: relative; flex-shrink: 0;">
+        <div style="padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between;">
+            <!-- Left: Menu + Logo -->
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button id="toggleSidebar" aria-label="메뉴" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: none; background: transparent; cursor: pointer; color: var(--ink); transition: background 0.15s;">
+                    <i class="fas fa-bars" style="font-size: 16px;"></i>
+                </button>
+                <button onclick="goHome()" style="background: none; border: none; cursor: pointer; display: flex; align-items: baseline; gap: 10px; padding: 0;">
+                    <span class="display-font" style="font-size: 18px; color: var(--forest); letter-spacing: 0.05em;">TRUE REVIEW</span>
+                    <span style="font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #9A9488; display: none;" class="sm:inline-block">Human Reviews, No Bots</span>
+                </button>
+            </div>
 
-      <a href="/check.html" class="mt-8 inline-flex min-h-11 items-center text-sm text-stone-400 underline decoration-stone-600 underline-offset-4">연결 진단 열기</a>
-    </aside>
+            <!-- Right: Search + Trust + Profile -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <button onclick="openSearch('전체 플랫폼')" aria-label="검색" class="btn-ghost" style="padding: 8px 10px; font-size: 15px;">
+                    <i class="fas fa-search"></i>
+                </button>
 
-    <main class="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8 lg:py-12">
-      <header class="max-w-2xl">
-        <p class="text-xs font-black uppercase tracking-[0.22em] text-emerald-800">HotelHansung</p>
-        <h1 class="mt-3 text-3xl font-black tracking-tight sm:text-5xl">믿을 사람을 고르면<br>리뷰가 달라집니다.</h1>
-        <p class="mt-4 text-base leading-7 text-stone-600">AI가 쓴 문장보다 사람 사이의 신뢰를 먼저 보여주는 호텔 리뷰 실험입니다.</p>
-      </header>
+                <!-- Trusted dropdown trigger -->
+                <div style="position: relative;">
+                    <button id="trustedBtn" onclick="toggleTrustedDropdown()" aria-label="신뢰하는 사용자" class="btn-ghost" style="padding: 8px 10px; font-size: 15px;">
+                        <i class="fas fa-user-check"></i>
+                    </button>
+                    <div id="trustedDropdown" class="dropdown-panel hidden" style="position: absolute; right: 0; top: 44px; width: 280px; padding: 16px; z-index: 90;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <p style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A8478;">신뢰하는 사용자</p>
+                            <button onclick="filterByTrusted(null)" style="font-size: 11px; color: var(--forest); font-weight: 600; background: none; border: none; cursor: pointer;">전체보기</button>
+                        </div>
+                        <div id="trustedList"><p style="font-size: 12px; color: #9A9488; padding: 8px 0;">불러오는 중…</p></div>
+                    </div>
+                </div>
 
-      <section class="mt-10 grid gap-4 sm:grid-cols-2" aria-label="앱 준비 상태">
-        <article class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">Session</p>
-          <h2 id="session-title" class="mt-3 text-lg font-bold">Firebase 연결 중</h2>
-          <p id="session-detail" class="mt-2 text-sm leading-6 text-stone-600" aria-live="polite">인증 상태와 사용자 문서를 확인하고 있습니다.</p>
-        </article>
+                <!-- Profile button -->
+                <button onclick="openProfileEdit()" aria-label="프로필 수정" class="avatar" style="width: 34px; height: 34px; font-size: 14px; border: none; cursor: pointer; margin-left: 2px;">
+                    <span id="profileInitial">성</span>
+                </button>
+            </div>
+        </div>
+    </header>
 
-        <article class="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-stone-500">Next</p>
-          <h2 class="mt-3 text-lg font-bold">리뷰 데이터 준비 중</h2>
-          <p class="mt-2 text-sm leading-6 text-stone-600">호텔 검색, 신뢰 필터, 리뷰 작성 화면이 단계별로 연결됩니다.</p>
-        </article>
-      </section>
-    </main>
-  </div>
+    <div style="display: flex; flex: 1; overflow: hidden; position: relative;">
 
-  <script type="module">
-    import { subscribeSession } from './app/session.js';
+        <!-- Sidebar backdrop -->
+        <div id="sidebarBackdrop" onclick="toggleSidebar()" class="hidden" style="position: fixed; inset: 0; background: rgba(26,26,24,0.5); z-index: 30; backdrop-filter: blur(1px);"></div>
 
-    const title = document.getElementById('session-title');
-    const detail = document.getElementById('session-detail');
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside id="sidebar" class="sidebar-transition" style="position: fixed; inset-y: 0; left: 0; width: 260px; display: flex; flex-direction: column; padding: 24px 16px; z-index: 40; overflow-y: auto; transform: translateX(-100%);">
+            <!-- Logo in sidebar -->
+            <div style="padding: 0 14px 20px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <div class="display-font" style="font-size: 16px; color: var(--gold); letter-spacing: 0.06em;">TRUE REVIEW</div>
+                <div style="font-size: 10px; color: rgba(245,242,236,0.35); letter-spacing: 0.08em; margin-top: 3px; text-transform: uppercase;">Human Reviews, No Bots</div>
+            </div>
+            <nav style="flex: 1;">
+                <button onclick="goHome(); toggleSidebar();" class="sidebar-link">
+                    <i class="fas fa-house"></i> 홈
+                </button>
+                <button onclick="toggleSidebar(); toggleTrustedDropdown();" class="sidebar-link">
+                    <i class="fas fa-user-check"></i> 신뢰하는 사용자
+                </button>
+                <button onclick="openWriteReview(); toggleSidebar();" class="sidebar-link">
+                    <i class="fas fa-pen-to-square"></i> 리뷰 작성
+                </button>
+                <button onclick="openProfileEdit(); toggleSidebar();" class="sidebar-link">
+                    <i class="fas fa-user"></i> 프로필 수정
+                </button>
+            </nav>
+            <div style="padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: rgba(245,242,236,0.3); line-height: 1.6;">
+                실제 후기를 남긴 사람만,<br>믿을 만한 사람의 후기만.
+            </div>
+        </aside>
 
-    subscribeSession((session) => {
-      const copy = {
-        loading: ['Firebase 연결 중', '인증 상태를 확인하고 있습니다.'],
-        syncing: ['사용자 준비 중', '로그인 계정의 프로필 문서를 보장하고 있습니다.'],
-        anonymous: ['연결 완료', '로그인하지 않은 상태입니다.'],
-        authenticated: ['연결 완료', `${session.profile?.nickname || '사용자'} 계정이 준비됐습니다.`],
-        error: ['연결 오류', '사용자 초기화에 실패했습니다. 연결 진단 페이지를 확인하세요.']
-      }[session.status];
+        <!-- ═══ MAIN ═══ -->
+        <main id="mainContent" style="flex: 1; overflow-y: auto; background: var(--parchment);">
 
-      title.textContent = copy[0];
-      detail.textContent = copy[1];
+            <!-- HOME SECTION -->
+            <div id="homeSection">
+
+                <!-- HERO: Search as the centerpiece -->
+                <section style="padding: 48px 24px 40px; max-width: 720px; margin: 0 auto;">
+                    <p style="font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--forest-muted); margin-bottom: 14px;">AI 가짜 리뷰가 만연한 지금</p>
+                    <h2 class="display-font" style="font-size: clamp(26px, 4vw, 40px); color: var(--ink); line-height: 1.2; text-wrap: balance; margin-bottom: 6px;">
+                        실제로 묵은 사람의 후기만 볼 수 있다면?
+                    </h2>
+                    <span class="gold-rule"></span>
+
+                    <!-- Search bar -->
+                    <div style="position: relative; margin-top: 8px;">
+                        <input
+                            type="text"
+                            id="heroSearchInput"
+                            class="hero-search-input"
+                            placeholder="호텔, 레스토랑, 상품명으로 검색… (예: 시그니엘 서울)"
+                            onkeypress="if(event.key==='Enter') heroSearch()"
+                        >
+                        <button onclick="heroSearch()" aria-label="검색" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--forest); font-size: 16px;">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Platform shortcuts -->
+                    <div style="display: flex; align-items: center; gap: 16px; margin-top: 20px; flex-wrap: wrap;">
+                        <span style="font-size: 11px; color: #9A9488; font-weight: 600;">바로가기:</span>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button onclick="openSearch('호텔스컴바인')" style="font-size: 11px; font-weight: 700; color: var(--forest); background: rgba(44,74,53,0.08); border: 1px solid rgba(44,74,53,0.2); border-radius: 4px; padding: 5px 10px; cursor: pointer; transition: background 0.15s;">
+                                <i class="fas fa-hotel" style="margin-right: 4px;"></i>호텔스컴바인
+                            </button>
+                            <button onclick="openSearch('쿠팡')" style="font-size: 11px; font-weight: 700; color: #8B4A10; background: rgba(139,74,16,0.08); border: 1px solid rgba(139,74,16,0.2); border-radius: 4px; padding: 5px 10px; cursor: pointer; transition: background 0.15s;">쿠팡</button>
+                            <button onclick="openSearch('네이버 쇼핑')" style="font-size: 11px; font-weight: 700; color: #1B6B3A; background: rgba(27,107,58,0.08); border: 1px solid rgba(27,107,58,0.2); border-radius: 4px; padding: 5px 10px; cursor: pointer;">네이버쇼핑</button>
+                            <button onclick="openSearch('배달의민족')" style="font-size: 11px; font-weight: 700; color: #0A6B7A; background: rgba(10,107,122,0.08); border: 1px solid rgba(10,107,122,0.2); border-radius: 4px; padding: 5px 10px; cursor: pointer;">배달의민족</button>
+                            <button onclick="openSearch('요기요')" style="font-size: 11px; font-weight: 700; color: #8B1A4A; background: rgba(139,26,74,0.08); border: 1px solid rgba(139,26,74,0.2); border-radius: 4px; padding: 5px 10px; cursor: pointer;">요기요</button>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="section-rule" style="max-width: 720px; margin: 0 auto;">
+
+                <!-- FEED SECTION -->
+                <section style="padding: 32px 24px 48px; max-width: 720px; margin: 0 auto;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <h3 style="font-size: 14px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink);">신뢰하는 사람의 리뷰</h3>
+                            <div id="trustFilterBadge">
+                                <span id="trustFilterLabel"></span>
+                                <i class="fas fa-times" style="cursor: pointer; font-size: 10px;" onclick="filterByTrusted(null)"></i>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 12px; color: #9A9488;">신뢰하는 사용자 <b id="trustCount" style="color: var(--forest);">0</b>명</span>
+                            <button onclick="openWriteReview()" class="btn-primary" style="padding: 7px 14px; font-size: 12px;">
+                                <i class="fas fa-pen-to-square"></i> 리뷰 작성
+                            </button>
+                        </div>
+                    </div>
+                    <div id="homeReviews" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- skeleton -->
+                        <div class="review-card" style="padding: 20px; border-radius: 6px;">
+                            <div class="skeleton" style="height: 16px; width: 55%; margin-bottom: 10px;"></div>
+                            <div class="skeleton" style="height: 12px; width: 35%; margin-bottom: 14px;"></div>
+                            <div class="skeleton" style="height: 12px; width: 90%;"></div>
+                        </div>
+                        <div class="review-card" style="padding: 20px; border-radius: 6px;">
+                            <div class="skeleton" style="height: 16px; width: 65%; margin-bottom: 10px;"></div>
+                            <div class="skeleton" style="height: 12px; width: 40%; margin-bottom: 14px;"></div>
+                            <div class="skeleton" style="height: 12px; width: 80%;"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ═══ SEARCH OVERLAY ═══ -->
+            <div id="searchOverlay" class="hidden" style="position: fixed; inset: 0; background: var(--parchment); z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 80px 24px 40px; overflow-y: auto;">
+                <div style="width: 100%; max-width: 600px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+                        <div>
+                            <p style="font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--forest-muted); margin-bottom: 8px;" id="searchPlatformLabel">플랫폼 검색</p>
+                            <h2 id="searchTitle" class="display-font" style="font-size: 28px; color: var(--ink);">인간 리뷰 검색</h2>
+                        </div>
+                        <button onclick="closeSearch()" style="background: none; border: none; cursor: pointer; color: #9A9488; font-size: 20px; padding: 4px;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div style="position: relative;">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="hero-search-input"
+                            style="font-size: 1.1rem; padding: 16px 56px 16px 20px;"
+                            onkeypress="if(event.key==='Enter') showResults()"
+                            placeholder="검색어를 입력하세요…"
+                        >
+                        <button onclick="showResults()" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--forest); font-size: 18px;">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <p style="margin-top: 16px; font-size: 12px; color: #9A9488; line-height: 1.6;">
+                        해당 플랫폼의 Verified Human 및 실투숙 인증 리뷰를 우선 표시합니다.<br>
+                        예: 시그니엘 서울, 파크하얏트 부산, 신라호텔
+                    </p>
+                </div>
+            </div>
+
+            <!-- ═══ SEARCH RESULTS ═══ -->
+            <div id="resultsPage" class="hidden" style="position: fixed; inset: 0; background: var(--parchment); z-index: 70; overflow-y: auto;">
+                <div style="max-width: 800px; margin: 0 auto; padding: 32px 24px 64px;">
+
+                    <!-- Back + heading -->
+                    <div style="margin-bottom: 28px;">
+                        <button onclick="backToSearch()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--forest-muted); background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 12px; letter-spacing: 0.04em;">
+                            <i class="fas fa-chevron-left" style="font-size: 10px;"></i> 다시 검색
+                        </button>
+                        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                            <h2 id="resultsHeading" class="display-font" style="font-size: clamp(22px, 3vw, 32px); color: var(--ink); text-wrap: balance;">검색 결과</h2>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <select id="sortSelect" onchange="rerenderResults()" class="sort-select">
+                                    <option value="recent">최신순</option>
+                                    <option value="stars">별점순</option>
+                                    <option value="reliability">신뢰도순</option>
+                                </select>
+                                <button id="reliabilityBtn" onclick="toggleReliability()" class="btn-outline" style="font-size: 12px; padding: 8px 14px;">
+                                    <i class="fas fa-robot"></i> AI 신뢰도 확인
+                                </button>
+                                <button onclick="openWriteReview(lastKeyword)" class="btn-primary" style="font-size: 12px; padding: 8px 14px;">
+                                    <i class="fas fa-pen-to-square"></i> 리뷰 쓰기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUMMARY — the core value prop -->
+                    <div id="resultsSummary" style="margin-bottom: 28px;"></div>
+
+                    <!-- Reviews list -->
+                    <div id="reviewsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══ REVIEW DETAIL MODAL ═══ -->
+    <div id="reviewDetailModal" class="hidden modal-overlay" style="position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-panel" style="max-width: 520px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 32px; position: relative;">
+            <button onclick="closeModal('reviewDetailModal')" style="position: absolute; right: 20px; top: 20px; background: none; border: none; cursor: pointer; color: #9A9488; font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.15s;" onmouseenter="this.style.background='var(--mist)'" onmouseleave="this.style.background='transparent'">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="reviewDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- ═══ USER PROFILE MODAL ═══ -->
+    <div id="userProfileModal" class="hidden modal-overlay" style="position: fixed; inset: 0; z-index: 85; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-panel" style="max-width: 520px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 32px; position: relative;">
+            <button onclick="closeModal('userProfileModal')" style="position: absolute; right: 20px; top: 20px; background: none; border: none; cursor: pointer; color: #9A9488; font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.15s;" onmouseenter="this.style.background='var(--mist)'" onmouseleave="this.style.background='transparent'">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="userProfileContent"></div>
+        </div>
+    </div>
+
+    <!-- ═══ WRITE REVIEW MODAL ═══ -->
+    <div id="writeReviewModal" class="hidden modal-overlay" style="position: fixed; inset: 0; z-index: 85; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-panel" style="max-width: 460px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 32px; position: relative;">
+            <button onclick="closeModal('writeReviewModal')" style="position: absolute; right: 20px; top: 20px; background: none; border: none; cursor: pointer; color: #9A9488; font-size: 18px;"><i class="fas fa-times"></i></button>
+            <h3 class="display-font" style="font-size: 22px; color: var(--ink); margin-bottom: 4px;">리뷰 작성</h3>
+            <span class="gold-rule"></span>
+
+            <label class="form-label">플랫폼</label>
+            <select id="wrPlatform" class="form-input" style="border-bottom: 1.5px solid var(--mist-dark); margin-bottom: 20px;">
+                <option>호텔스컴바인</option>
+                <option>쿠팡</option>
+                <option>네이버 쇼핑</option>
+                <option>배달의민족</option>
+                <option>요기요</option>
+                <option>기타</option>
+            </select>
+
+            <label class="form-label">상품 / 서비스명</label>
+            <input id="wrProduct" class="form-input" placeholder="예: 시그니엘 서울">
+
+            <label class="form-label">리뷰 제목</label>
+            <input id="wrTitle" class="form-input" placeholder="한 줄로 요약해 주세요">
+
+            <label class="form-label">예약번호</label>
+            <input id="wrBookingCode" class="form-input" placeholder="BK-2026 — 예약확인서의 예약번호 (필수, 실투숙 인증)">
+
+            <label class="form-label">별점</label>
+            <div id="wrStars" style="font-size: 22px; margin-bottom: 20px; cursor: pointer; user-select: none; display: flex; gap: 4px;"></div>
+
+            <label class="form-label">리뷰 내용</label>
+            <textarea id="wrContent" rows="4" class="form-textarea" placeholder="실제 경험을 구체적으로 적을수록 AI 신뢰도가 높게 나옵니다."></textarea>
+
+            <p style="font-size: 11px; color: #9A9488; margin-bottom: 16px; line-height: 1.5;">
+                <i class="fas fa-robot" style="margin-right: 4px;"></i> 등록 시 AI가 리뷰 신뢰도를 0–100점으로 채점합니다.
+            </p>
+
+            <p id="wrError" style="font-size: 12px; color: var(--bot-red); margin-bottom: 12px; min-height: 18px;"></p>
+            <button id="wrSubmit" onclick="submitReview()" class="btn-primary" style="width: 100%; justify-content: center; padding: 13px;">등록</button>
+        </div>
+    </div>
+
+    <!-- ═══ PROFILE EDIT MODAL ═══ -->
+    <div id="profileEditModal" class="hidden modal-overlay" style="position: fixed; inset: 0; z-index: 85; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-panel" style="max-width: 360px; width: 100%; padding: 32px; position: relative;">
+            <h3 class="display-font" style="font-size: 22px; color: var(--ink); margin-bottom: 4px;">프로필 수정</h3>
+            <span class="gold-rule"></span>
+            <label class="form-label">닉네임</label>
+            <input id="profileNameInput" type="text" class="form-input" style="font-size: 18px; margin-bottom: 28px;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeModal('profileEditModal')" class="btn-ghost" style="flex: 1; justify-content: center; border: 1.5px solid var(--mist-dark); border-radius: 4px;">취소</button>
+                <button onclick="saveProfile()" class="btn-primary" style="flex: 1; justify-content: center;">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TOAST ═══ -->
+    <div id="toast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 99; display: none; white-space: nowrap;"></div>
+
+    <script>
+    // ===== 상태 =====
+    let me = localStorage.getItem('tr_nickname') || '성우';
+    let trustedUsers = [];
+    let currentTrustFilter = null;
+    let reliabilityOn = false;
+    let lastKeyword = '';
+    let lastResults = [];
+    let wrStarValue = 5;
+
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const trustedIds = () => new Set(trustedUsers.map(u => u.id));
+
+    function starsHTML(n) {
+        let h = '';
+        for (let i = 1; i <= 5; i++) {
+            h += `<i class="${i <= n ? 'fas' : 'far'} fa-star" style="color:${i <= n ? 'var(--gold)' : 'var(--mist-dark)'}; font-size: inherit;"></i>`;
+        }
+        return h;
+    }
+
+    function timeAgo(iso) {
+        const s = (Date.now() - new Date(iso).getTime()) / 1000;
+        if (s < 3600) return Math.max(1, Math.floor(s/60)) + '분 전';
+        if (s < 86400) return Math.floor(s/3600) + '시간 전';
+        if (s < 86400*7) return Math.floor(s/86400) + '일 전';
+        return new Date(iso).toLocaleDateString('ko-KR');
+    }
+
+    function toast(msg) {
+        const t = $('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        clearTimeout(t._h);
+        t._h = setTimeout(() => { t.style.display = 'none'; }, 2400);
+    }
+
+    async function api(path, opts) {
+        const r = await fetch(path, opts);
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'HTTP ' + r.status);
+        return data;
+    }
+
+    // ── 뱃지 렌더 ──
+    function humanBadge(rel) {
+        if (rel >= 80) return '<span class="badge-verified-human"><i class="fas fa-check-circle"></i>Verified Human</span>';
+        if (rel < 40) return '<span class="badge-bot-suspect"><i class="fas fa-robot"></i>봇 의심</span>';
+        return '<span class="badge-unverified">미검증</span>';
+    }
+    function verifiedStayBadge() {
+        return '<span class="badge-stayed"><i class="fas fa-check-double"></i>실투숙 인증</span>';
+    }
+    function relTag(rel) {
+        const cls = rel >= 80 ? 'rel-high' : rel >= 40 ? 'rel-mid' : 'rel-low';
+        return `<span class="badge-reliability ${cls}" style="font-variant-numeric: tabular-nums;">신뢰도 ${rel}%</span>`;
+    }
+    function trustBtnHtml(user, small) {
+        const on = trustedIds().has(user.id);
+        const sz = small ? 'font-size:11px; padding: 5px 10px;' : 'font-size:13px; padding: 8px 16px;';
+        return `<button onclick="event.stopPropagation(); toggleTrust('${esc(user.id)}', '${esc(user.nickname)}')"
+            class="${on ? 'btn-primary' : 'btn-outline'}" style="${sz}">
+            <i class="fas ${on ? 'fa-user-check' : 'fa-user-plus'}"></i>${on ? '신뢰 중' : '신뢰 등록'}</button>`;
+    }
+    // verified 배지 (리뷰 객체에 verified:true 있을 때)
+    function stayBadgeIfVerified(r) {
+        return r && r.verified ? verifiedStayBadge() : '';
+    }
+
+    // ===== 프로필 =====
+    function renderProfile() {
+        $('profileInitial').innerText = me[0] || '?';
+    }
+    function openProfileEdit() {
+        $('profileNameInput').value = me;
+        $('profileEditModal').classList.remove('hidden');
+        setTimeout(() => $('profileNameInput').focus(), 50);
+    }
+    async function saveProfile() {
+        const v = $('profileNameInput').value.trim();
+        if (!v) return toast('닉네임을 입력해주세요');
+        me = v; localStorage.setItem('tr_nickname', me);
+        renderProfile();
+        closeModal('profileEditModal');
+        await loadTrusted();
+        await loadHome();
+        toast('프로필이 변경되었습니다');
+    }
+
+    // ===== 신뢰하는 사용자 =====
+    async function loadTrusted() {
+        try {
+            trustedUsers = await api('/api/trust?truster=' + encodeURIComponent(me));
+        } catch (e) { trustedUsers = []; console.error(e); }
+        $('trustCount').innerText = trustedUsers.length;
+        const el = $('trustedList');
+        if (!trustedUsers.length) {
+            el.innerHTML = '<p style="font-size:12px; color:#9A9488; padding: 8px 0; line-height:1.6;">아직 없어요.<br>리뷰에서 작성자를 눌러 신뢰 등록을 해보세요.</p>';
+            return;
+        }
+        el.innerHTML = trustedUsers.map(u => `
+            <div style="display:flex; align-items:center; gap:8px; padding: 6px 4px; border-radius:4px; transition: background 0.15s;" onmouseenter="this.style.background='var(--parchment)'" onmouseleave="this.style.background='transparent'">
+                <button onclick="filterByTrusted(${JSON.stringify({id:u.id,nickname:u.nickname}).replace(/"/g,'&quot;')})" style="display:flex; align-items:center; gap:8px; flex:1; text-align:left; background:none; border:none; cursor:pointer; min-width:0;">
+                    <div class="avatar" style="width:28px; height:28px; font-size:12px; background:rgba(44,74,53,0.12); color:var(--forest);">${esc(u.nickname[0])}</div>
+                    <span style="font-size:13px; color:var(--ink); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(u.nickname)}</span>
+                </button>
+                <button onclick="openUserProfile('${u.id}')" style="font-size:10px; color:#9A9488; background:none; border:none; cursor:pointer; font-weight:600; padding: 2px 6px; border-radius:3px;" title="리뷰 내역">내역</button>
+                <button onclick="toggleTrust('${u.id}', '${esc(u.nickname)}')" style="font-size:11px; color:#B05050; background:none; border:none; cursor:pointer; padding: 2px 6px;" title="신뢰 해제"><i class="fas fa-user-minus"></i></button>
+            </div>`).join('');
+    }
+
+    async function toggleTrust(userId, nickname) {
+        const on = trustedIds().has(userId);
+        try {
+            await api('/api/trust', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ truster: me, trustedUserId: userId, trust: !on })
+            });
+            toast(on ? `${nickname}님을 신뢰 목록에서 해제했습니다` : `${nickname}님을 신뢰 목록에 등록했습니다`);
+            if (on && currentTrustFilter?.id === userId) currentTrustFilter = null;
+            await loadTrusted();
+            await loadHome();
+            if (!$('userProfileModal').classList.contains('hidden') && lastProfileUserId) openUserProfile(lastProfileUserId);
+            if (!$('resultsPage').classList.contains('hidden')) rerenderResults();
+        } catch (e) { toast('실패: ' + e.message); }
+    }
+
+    function toggleTrustedDropdown() { $('trustedDropdown').classList.toggle('hidden'); }
+    document.addEventListener('click', (e) => {
+        const dd = $('trustedDropdown'), btn = $('trustedBtn');
+        if (!dd.contains(e.target) && !btn.contains(e.target)) dd.classList.add('hidden');
     });
-  </script>
+
+    // ===== 홈 피드 =====
+    function filterByTrusted(user) {
+        currentTrustFilter = user;
+        const badge = $('trustFilterBadge');
+        if (user) {
+            badge.classList.add('active');
+            $('trustFilterLabel').innerText = `${user.nickname}님의 리뷰만`;
+        } else {
+            badge.classList.remove('active');
+        }
+        $('trustedDropdown').classList.add('hidden');
+        goHome();
+        loadHome();
+    }
+
+    async function loadHome() {
+        const box = $('homeReviews');
+        box.innerHTML = `
+            <div class="review-card" style="padding: 20px; border-radius: 6px;">
+                <div class="skeleton" style="height: 16px; width: 55%; margin-bottom: 10px;"></div>
+                <div class="skeleton" style="height: 12px; width: 35%; margin-bottom: 14px;"></div>
+                <div class="skeleton" style="height: 12px; width: 90%;"></div>
+            </div>
+            <div class="review-card" style="padding: 20px; border-radius: 6px;">
+                <div class="skeleton" style="height: 16px; width: 65%; margin-bottom: 10px;"></div>
+                <div class="skeleton" style="height: 12px; width: 40%; margin-bottom: 14px;"></div>
+                <div class="skeleton" style="height: 12px; width: 80%;"></div>
+            </div>`;
+        try {
+            let rows;
+            if (currentTrustFilter) {
+                rows = await api('/api/reviews?userId=' + currentTrustFilter.id);
+            } else {
+                rows = await api('/api/reviews?home=1&truster=' + encodeURIComponent(me));
+            }
+            if (!rows.length) {
+                box.innerHTML = '<p style="font-size:13px; color:#9A9488; padding: 40px 0; text-align:center;">아직 리뷰가 없어요. 신뢰하는 사용자를 등록하거나 첫 리뷰를 남겨보세요.</p>';
+                return;
+            }
+            box.innerHTML = '';
+            rows.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'review-card';
+                card.style.cssText = 'padding: 18px 20px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;';
+                const isTrusted = trustedIds().has(r.users.id);
+                card.innerHTML = `
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                            <h4 style="font-size:15px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 300px;">${esc(r.title)}</h4>
+                            ${stayBadgeIfVerified(r)}
+                        </div>
+                        <p style="font-size:12px; color:#7A7468; margin-bottom:6px;">
+                            ${esc(r.product)} ·
+                            <button style="color:var(--forest); font-weight:600; background:none; border:none; cursor:pointer; font-size:12px;" onclick="event.stopPropagation(); openUserProfile('${r.users.id}')">${esc(r.users.nickname)}</button>
+                            ${isTrusted ? '<i class="fas fa-user-check" style="color:var(--forest); font-size:10px; margin-left:3px;" title="신뢰하는 사용자"></i>' : ''}
+                        </p>
+                        <p style="font-size:13px; color:#5A5650; overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical;">${esc(r.content)}</p>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
+                        <div style="font-size:12px;">${starsHTML(r.stars)}</div>
+                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                            ${humanBadge(r.reliability)}
+                            <span style="font-size:10px; color:#9A9488;">${timeAgo(r.created_at)}</span>
+                        </div>
+                    </div>`;
+                card.addEventListener('click', () => openReviewDetail(r));
+                box.appendChild(card);
+            });
+        } catch (e) {
+            box.innerHTML = `<p style="font-size:13px; color:var(--bot-red); padding:20px 0; text-align:center;">리뷰 로드 실패: ${esc(e.message)}</p>`;
+        }
+    }
+
+    function goHome() {
+        $('resultsPage').classList.add('hidden');
+        $('searchOverlay').classList.add('hidden');
+        $('homeSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ===== 검색 =====
+    function heroSearch() {
+        const keyword = $('heroSearchInput').value.trim();
+        if (!keyword) return toast('검색어를 입력해주세요');
+        // simulate search via openSearch then auto-fire
+        $('searchInput').value = keyword;
+        showResults();
+    }
+
+    function openSearch(platform) {
+        $('searchOverlay').classList.remove('hidden');
+        $('searchPlatformLabel').innerText = platform;
+        $('searchTitle').innerText = `${platform} 리뷰 검색`;
+        $('searchInput').value = '';
+        $('searchInput').placeholder = `${platform}에서 이용한 서비스명 입력…`;
+        setTimeout(() => $('searchInput').focus(), 50);
+    }
+    function closeSearch() { $('searchOverlay').classList.add('hidden'); }
+    function backToSearch() {
+        $('resultsPage').classList.add('hidden');
+        $('searchOverlay').classList.remove('hidden');
+        setTimeout(() => $('searchInput').focus(), 50);
+    }
+
+    async function showResults() {
+        const keyword = $('searchInput').value.trim();
+        if (!keyword) return toast('검색어를 입력해주세요');
+        lastKeyword = keyword;
+        reliabilityOn = false;
+        resetReliabilityButton();
+        $('sortSelect').value = 'recent';
+        closeSearch();
+        $('resultsPage').classList.remove('hidden');
+        $('resultsHeading').innerText = `'${keyword}'에 대한 리뷰`;
+        $('resultsSummary').innerHTML = `
+            <div class="review-card" style="padding:24px; border-radius:6px;">
+                <div class="skeleton" style="height:14px; width:30%; margin-bottom:12px;"></div>
+                <div style="display:flex; gap:32px;">
+                    <div class="skeleton" style="height:40px; width:80px;"></div>
+                    <div class="skeleton" style="height:40px; width:80px;"></div>
+                </div>
+            </div>`;
+        $('reviewsContainer').innerHTML = '';
+        try {
+            lastResults = await api('/api/reviews?product=' + encodeURIComponent(keyword));
+            renderSummary();
+            rerenderResults();
+        } catch (e) {
+            $('resultsSummary').innerHTML = `<p style="font-size:13px; color:var(--bot-red);">검색 실패: ${esc(e.message)}</p>`;
+        }
+    }
+
+    function renderSummary() {
+        const el = $('resultsSummary');
+        if (!lastResults.length) {
+            el.innerHTML = `
+                <div class="review-card" style="padding:24px; border-radius:6px; text-align:center;">
+                    <p style="font-size:14px; color:#7A7468; margin-bottom:10px;">'${esc(lastKeyword)}' 리뷰가 아직 없습니다.</p>
+                    <button onclick="openWriteReview(lastKeyword)" class="btn-primary" style="font-size:13px;">첫 번째 리뷰를 남겨보세요</button>
+                </div>`;
+            return;
+        }
+        const avg = (lastResults.reduce((s, r) => s + r.stars, 0) / lastResults.length).toFixed(1);
+        const real = lastResults.filter(r => r.reliability >= 80);
+        const realAvg = real.length ? (real.reduce((s, r) => s + r.stars, 0) / real.length).toFixed(1) : '—';
+        const diff = real.length && realAvg !== '—' ? (parseFloat(realAvg) - parseFloat(avg)).toFixed(1) : null;
+        const diffSign = diff !== null ? (parseFloat(diff) >= 0 ? '+' + diff : diff) : '';
+        const diffColor = diff !== null ? (parseFloat(diff) > 0.1 ? 'var(--verified-green)' : parseFloat(diff) < -0.1 ? 'var(--bot-red)' : '#7A7468') : '';
+
+        el.innerHTML = `
+            <div style="background: var(--forest); border-radius: 6px; padding: 24px 28px; color: var(--parchment);">
+                <p style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:rgba(245,242,236,0.5); margin-bottom:16px;">
+                    <i class="fas fa-shield-halved" style="margin-right:6px; color:var(--gold-light);"></i>신뢰 분석 요약 — ${esc(lastKeyword)} (${lastResults.length}건)
+                </p>
+                <div style="display:flex; gap:40px; flex-wrap:wrap; align-items:flex-end;">
+                    <div>
+                        <div class="metric-num" style="font-size:44px; color:rgba(245,242,236,0.65);">${avg}</div>
+                        <p style="font-size:11px; color:rgba(245,242,236,0.4); margin-top:4px;">전체 평균 (${lastResults.length}건)</p>
+                        <div style="font-size:13px; margin-top:6px;">${starsHTML(Math.round(avg))}</div>
+                    </div>
+                    <div style="width:1px; height:64px; background:rgba(245,242,236,0.15); flex-shrink:0;"></div>
+                    <div>
+                        <div class="metric-num" style="font-size:44px; color:var(--gold-light);">${realAvg}</div>
+                        <p style="font-size:11px; color:rgba(245,242,236,0.4); margin-top:4px;">인간 인증 평균 (${real.length}건)</p>
+                        <p style="font-size:12px; color:var(--gold-light); margin-top:6px; font-weight:700;">
+                            ${real.length ? `<i class="fas fa-check-circle" style="margin-right:4px;"></i>Verified Human 리뷰만의 평균` : '인증 리뷰 없음'}
+                        </p>
+                    </div>
+                    ${diff !== null ? `
+                    <div>
+                        <div class="metric-num" style="font-size:32px; color:${diffColor}; font-weight:700;">${diffSign}</div>
+                        <p style="font-size:11px; color:rgba(245,242,236,0.4); margin-top:4px;">평점 차이</p>
+                        <p style="font-size:11px; color:rgba(245,242,236,0.35); margin-top:4px; max-width:140px; line-height:1.5;">봇 리뷰 제외 시<br>평점이 달라질 수 있습니다</p>
+                    </div>` : ''}
+                </div>
+            </div>`;
+    }
+
+    // ── 정렬: 신뢰 사용자 → verified → 나머지 (그룹 내 선택 정렬) ──
+    function sortedResults() {
+        const mode = $('sortSelect').value;
+        const sortFn = (a, b) => {
+            if (mode === 'stars') return b.stars - a.stars;
+            if (mode === 'reliability') return b.reliability - a.reliability;
+            return new Date(b.created_at) - new Date(a.created_at);
+        };
+        const tids = trustedIds();
+        const groupA = lastResults.filter(r => tids.has(r.users.id)).sort(sortFn);  // 신뢰 사용자
+        const groupB = lastResults.filter(r => !tids.has(r.users.id) && r.verified).sort(sortFn);  // verified
+        const groupC = lastResults.filter(r => !tids.has(r.users.id) && !r.verified).sort(sortFn); // 나머지
+        return { groupA, groupB, groupC };
+    }
+
+    function rerenderResults() {
+        const container = $('reviewsContainer');
+        container.innerHTML = '';
+        const { groupA, groupB, groupC } = sortedResults();
+        const total = groupA.length + groupB.length + groupC.length;
+        if (!total) {
+            container.innerHTML = '<p style="font-size:13px; color:#9A9488; padding:40px 0; text-align:center;">검색 결과가 없습니다.</p>';
+            return;
+        }
+
+        function renderGroup(items, label) {
+            if (!items.length) return;
+            if (label) {
+                const lbl = document.createElement('div');
+                lbl.className = 'group-label';
+                lbl.style.cssText = 'margin-top: 20px; margin-bottom: 10px;';
+                lbl.innerHTML = label;
+                container.appendChild(lbl);
+            }
+            items.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'review-card';
+                card.style.cssText = 'padding:18px 20px; border-radius:6px; cursor:pointer; display:flex; flex-direction:column; gap:8px;';
+                const isTrusted = trustedIds().has(r.users.id);
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0;">
+                            <h4 style="font-size:15px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:300px;">${esc(r.title)}</h4>
+                            ${stayBadgeIfVerified(r)}
+                            ${reliabilityOn ? relTag(r.reliability) : ''}
+                        </div>
+                        <div style="font-size:12px; flex-shrink:0;">${starsHTML(r.stars)}</div>
+                    </div>
+                    <p style="font-size:12px; color:#7A7468;">
+                        ${esc(r.product)} ·
+                        <button style="color:var(--forest); font-weight:600; background:none; border:none; cursor:pointer; font-size:12px;" onclick="event.stopPropagation(); openUserProfile('${r.users.id}')">${esc(r.users.nickname)}</button>
+                        ${isTrusted ? '<i class="fas fa-user-check" style="color:var(--forest); font-size:10px; margin-left:3px;" title="신뢰하는 사용자"></i>' : ''}
+                        · ${timeAgo(r.created_at)}
+                    </p>
+                    <p style="font-size:13px; color:#5A5650; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${esc(r.content)}</p>`;
+                card.addEventListener('click', () => openReviewDetail(r));
+                container.appendChild(card);
+            });
+        }
+
+        // 신뢰 사용자 그룹 (라벨 표시)
+        if (groupA.length) {
+            renderGroup(groupA, '<i class="fas fa-user-check" style="margin-right:6px;"></i>신뢰하는 사용자');
+        }
+        // Verified 그룹
+        if (groupB.length) {
+            renderGroup(groupB, '<i class="fas fa-check-double" style="margin-right:6px;"></i>실투숙 인증 리뷰');
+        }
+        // 나머지 (라벨 없음 or 구분선만)
+        if (groupC.length) {
+            if (groupA.length || groupB.length) {
+                const sep = document.createElement('hr');
+                sep.className = 'section-rule';
+                sep.style.cssText = 'margin: 20px 0 12px;';
+                container.appendChild(sep);
+            }
+            renderGroup(groupC, '');
+        }
+    }
+
+    function toggleReliability() {
+        reliabilityOn = !reliabilityOn;
+        const btn = $('reliabilityBtn');
+        if (reliabilityOn) {
+            $('sortSelect').value = 'reliability';
+            btn.innerHTML = '<i class="fas fa-rotate-left"></i> 신뢰도 표시 끄기';
+            btn.style.background = 'var(--forest)';
+            btn.style.color = 'var(--white)';
+        } else {
+            $('sortSelect').value = 'recent';
+            resetReliabilityButton();
+        }
+        rerenderResults();
+    }
+    function resetReliabilityButton() {
+        const btn = $('reliabilityBtn');
+        btn.innerHTML = '<i class="fas fa-robot"></i> AI 신뢰도 확인';
+        btn.style.background = 'transparent';
+        btn.style.color = 'var(--forest)';
+    }
+
+    // ===== 리뷰 상세 =====
+    function openReviewDetail(r) {
+        $('reviewDetailContent').innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+                <button onclick="closeModal('reviewDetailModal'); openUserProfile('${r.users.id}')" style="display:flex; align-items:center; gap:12px; text-align:left; background:none; border:none; cursor:pointer;">
+                    <div class="avatar" style="width:44px; height:44px; font-size:17px; flex-shrink:0;">${esc(r.users.nickname[0])}</div>
+                    <div>
+                        <p style="font-size:14px; font-weight:700; color:var(--ink);">${esc(r.users.nickname)} <i class="fas fa-chevron-right" style="font-size:9px; color:#C4BFB8; margin-left:2px;"></i></p>
+                        <div style="margin-top:3px; display:flex; gap:5px; flex-wrap:wrap;">${humanBadge(r.reliability)}</div>
+                    </div>
+                </button>
+                <div style="margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                    ${stayBadgeIfVerified(r)}
+                    ${relTag(r.reliability)}
+                </div>
+            </div>
+            <h3 class="display-font" style="font-size:21px; color:var(--ink); margin-bottom:6px; text-wrap:balance;">${esc(r.title)}</h3>
+            <p style="font-size:12px; color:#9A9488; margin-bottom:14px;">${esc(r.platform || '')}${r.platform ? ' · ' : ''}${esc(r.product)} · ${timeAgo(r.created_at)}</p>
+            <div style="margin-bottom:16px; font-size:16px;">${starsHTML(r.stars)}</div>
+            <p style="font-size:14px; color:#4A4640; line-height:1.75; white-space:pre-wrap;">${esc(r.content)}</p>
+            <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--mist);">${trustBtnHtml(r.users, false)}</div>`;
+        $('reviewDetailModal').classList.remove('hidden');
+    }
+
+    // ===== 사용자 프로필 =====
+    let lastProfileUserId = null;
+    async function openUserProfile(userId) {
+        lastProfileUserId = userId;
+        const box = $('userProfileContent');
+        box.innerHTML = `
+            <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
+                <div class="skeleton" style="width:52px; height:52px; border-radius:50%; flex-shrink:0;"></div>
+                <div style="flex:1;">
+                    <div class="skeleton" style="height:16px; width:50%; margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:12px; width:30%;"></div>
+                </div>
+            </div>`;
+        $('userProfileModal').classList.remove('hidden');
+        try {
+            const rows = await api('/api/reviews?userId=' + userId);
+            const u = rows[0]?.users || trustedUsers.find(x => x.id === userId) || { id: userId, nickname: '?', bio: '' };
+            const avgRel = rows.length ? Math.round(rows.reduce((s, r) => s + r.reliability, 0) / rows.length) : 0;
+            const relColor = avgRel >= 80 ? 'var(--verified-green)' : avgRel >= 40 ? '#7A5A0A' : 'var(--bot-red)';
+            box.innerHTML = `
+                <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:16px;">
+                    <div class="avatar" style="width:52px; height:52px; font-size:20px; flex-shrink:0;">${esc(u.nickname[0])}</div>
+                    <div style="flex:1; min-width:0;">
+                        <p style="font-size:17px; font-weight:800; color:var(--ink);">${esc(u.nickname)}</p>
+                        <p style="font-size:12px; color:#9A9488; margin-top:2px;">${esc(u.bio || '')}</p>
+                    </div>
+                    ${trustBtnHtml(u, true)}
+                </div>
+                <div style="display:flex; gap:20px; font-size:12px; color:#7A7468; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--mist);">
+                    <span>리뷰 <b style="color:var(--ink); font-weight:700;">${rows.length}</b>건</span>
+                    <span>평균 신뢰도 <b style="color:${relColor}; font-weight:700;">${avgRel}%</b></span>
+                </div>
+                <p style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#9A9488; margin-bottom:12px;">전체 리뷰 내역</p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                ${rows.length ? rows.map(r => `
+                    <div style="border:1px solid var(--mist); border-radius:6px; padding:14px 16px; background:var(--card-bg);">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px;">
+                            <div style="display:flex; align-items:center; gap:6px; min-width:0; flex-wrap:wrap;">
+                                <p style="font-size:13px; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(r.title)}</p>
+                                ${stayBadgeIfVerified(r)}
+                            </div>
+                            <div style="font-size:11px; flex-shrink:0;">${starsHTML(r.stars)}</div>
+                        </div>
+                        <p style="font-size:11px; color:#9A9488; margin-bottom:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">${esc(r.product)} · ${timeAgo(r.created_at)} · ${relTag(r.reliability)}</p>
+                        <p style="font-size:12px; color:#5A5650; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${esc(r.content)}</p>
+                    </div>`).join('')
+                : '<p style="font-size:13px; color:#9A9488; text-align:center; padding:20px 0;">아직 작성한 리뷰가 없습니다.</p>'}
+                </div>`;
+        } catch (e) {
+            box.innerHTML = `<p style="font-size:13px; color:var(--bot-red); padding:20px 0; text-align:center;">로드 실패: ${esc(e.message)}</p>`;
+        }
+    }
+
+    // ===== 리뷰 작성 =====
+    function renderWrStars() {
+        $('wrStars').innerHTML = Array.from({length: 5}, (_, i) =>
+            `<i class="${i < wrStarValue ? 'fas' : 'far'} fa-star" style="color:${i < wrStarValue ? 'var(--gold)' : 'var(--mist-dark)'}; font-size:22px; cursor:pointer; transition:color 0.1s;" onclick="wrStarValue=${i+1}; renderWrStars()" onmouseenter="highlightStars(${i+1})" onmouseleave="renderWrStars()"></i>`).join('');
+    }
+    function highlightStars(n) {
+        const items = $('wrStars').querySelectorAll('i');
+        items.forEach((el, i) => {
+            el.className = i < n ? 'fas fa-star' : 'far fa-star';
+            el.style.color = i < n ? 'var(--gold)' : 'var(--mist-dark)';
+        });
+    }
+    function openWriteReview(product) {
+        $('wrProduct').value = typeof product === 'string' ? product : '';
+        $('wrTitle').value = '';
+        $('wrContent').value = '';
+        $('wrBookingCode').value = '';
+        $('wrError').textContent = '';
+        wrStarValue = 5;
+        renderWrStars();
+        $('writeReviewModal').classList.remove('hidden');
+        setTimeout(() => ($('wrProduct').value ? $('wrTitle') : $('wrProduct')).focus(), 50);
+    }
+    async function submitReview() {
+        const product = $('wrProduct').value.trim();
+        const title = $('wrTitle').value.trim();
+        const content = $('wrContent').value.trim();
+        const bookingCode = $('wrBookingCode').value.trim();
+        if (!product || !title || content.length < 10) {
+            $('wrError').textContent = '상품명, 제목을 채우고 내용은 10자 이상 적어주세요.';
+            return;
+        }
+        const btn = $('wrSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>AI가 신뢰도를 채점하는 중…';
+        $('wrError').textContent = '';
+        try {
+            const body = { nickname: me, platform: $('wrPlatform').value, product, title, content, stars: wrStarValue };
+            if (!/^BK-\d{4,}$/i.test(bookingCode)) {
+                $('wrError').textContent = '예약번호를 입력하세요 (형식: BK-2026). 실제 이용자만 리뷰를 남길 수 있습니다.';
+                btn.disabled = false; btn.textContent = '등록';
+                return;
+            }
+            body.bookingCode = bookingCode;
+            const row = await api('/api/reviews', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            closeModal('writeReviewModal');
+            toast(`등록 완료! AI 신뢰도 ${row.reliability}%로 채점되었습니다`);
+            await loadHome();
+            if (!$('resultsPage').classList.contains('hidden') && lastKeyword) {
+                lastResults = await api('/api/reviews?product=' + encodeURIComponent(lastKeyword));
+                renderSummary();
+                rerenderResults();
+            }
+        } catch (e) {
+            $('wrError').textContent = '등록 실패: ' + e.message;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '등록';
+        }
+    }
+
+    // ===== 공통 =====
+    function closeModal(id) { $(id).classList.add('hidden'); }
+    function toggleSidebar() {
+        const sb = $('sidebar');
+        const open = sb.style.transform !== 'translateX(0%)';
+        sb.style.transform = open ? 'translateX(0%)' : 'translateX(-100%)';
+        $('sidebarBackdrop').classList.toggle('hidden', !open);
+    }
+    $('toggleSidebar').addEventListener('click', toggleSidebar);
+    // 모달 배경 클릭으로 닫기
+    document.querySelectorAll('.modal-overlay').forEach(ov => {
+        ov.addEventListener('click', e => { if (e.target === ov) ov.classList.add('hidden'); });
+    });
+    $('toggleSidebar').addEventListener('mouseenter', function() { this.style.background = 'var(--mist)'; });
+    $('toggleSidebar').addEventListener('mouseleave', function() { this.style.background = 'transparent'; });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            ['reviewDetailModal','userProfileModal','writeReviewModal','profileEditModal'].forEach(closeModal);
+            closeSearch();
+        }
+    });
+
+    // ===== 초기화 =====
+    renderProfile();
+    loadTrusted().then(loadHome);
+    </script>
 </body>
 </html>
